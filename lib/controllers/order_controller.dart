@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import '../models/new_address.dart';
@@ -116,23 +120,49 @@ class NewOrderController extends GetxController {
     }
   }
 
-  // Create basic order
+  // Create basic order - تم تحديثها لدعم بيانات صاحب الفاتورة
+  // تحديث دالة createBasicOrder في NewOrderController
+
   Future<String?> createBasicOrder({
     required String client,
     required String clientPhone,
     required String clientEmail,
+    NewAddress? clientAddress,
     required String description,
     required String vehicleOwner,
     required String licensePlateNumber,
-    required String pickupStreet,
-    required String pickupHouseNumber,
-    required String pickupZipCode,
-    required String pickupCity,
-    required String deliveryStreet,
-    required String deliveryHouseNumber,
-    required String deliveryZipCode,
-    required String deliveryCity,
+
+    // بيانات السيارة الإضافية
+    String? vin,
+    String? brand,
+    String? model,
+    int? year,
+    String? color,
+
+    // الحقول الجديدة
+    String? ukz,
+    String? fin,
+    String? bestellnummer,
+    String? leasingvertragsnummer,
+    String? kostenstelle,
+    String? bemerkung,
+    String? typ,
+
+    required NewAddress pickupAddress,
+    required NewAddress deliveryAddress,
     ServiceType serviceType = ServiceType.TRANSPORT,
+
+    // بيانات صاحب الفاتورة
+    bool isSameBilling = true,
+    String? billingName,
+    String? billingPhone,
+    String? billingEmail,
+    NewAddress? billingAddress,
+
+    // الأغراض - تغيير النوع
+    List<VehicleItem>? items,
+    List<VehicleDamage>? damages,
+
   }) async {
     try {
       _isCreating.value = true;
@@ -143,17 +173,20 @@ class NewOrderController extends GetxController {
         client: client,
         vehicleOwner: vehicleOwner,
         licensePlateNumber: licensePlateNumber,
-        pickupStreet: pickupStreet,
-        pickupCity: pickupCity,
-        deliveryStreet: deliveryStreet,
-        deliveryCity: deliveryCity,
+        pickupAddress: pickupAddress,
+        deliveryAddress: deliveryAddress,
+        clientAddress: clientAddress,
+        isSameBilling: isSameBilling,
+        billingName: billingName,
+        billingPhone: billingPhone,
+        billingEmail: billingEmail,
+        billingAddress: billingAddress,
       );
 
       if (validationError != null) {
         throw Exception(validationError);
       }
 
-      // التحقق من معرف المستخدم
       final currentUserId = _authController.currentUserId;
       if (currentUserId == null || currentUserId.isEmpty) {
         throw Exception('must_login_first'.tr);
@@ -161,28 +194,57 @@ class NewOrderController extends GetxController {
 
       print('📤 ${'creating_new_order'.tr}...');
 
+      // تحويل الأغراض إلى List<String> قبل إنشاء الطلب
+      final List<String> itemsAsStrings = (items ?? [])
+          .map((item) => item.toString().split('.').last)
+          .toList();
+
+      print('🔍 الأغراض المحولة: $itemsAsStrings');
+
       final order = NewOrder(
         id: '',
         client: client.trim(),
         clientPhone: clientPhone.trim(),
         clientEmail: clientEmail.trim(),
+        clientAddress: clientAddress,
         description: description.trim(),
         vehicleOwner: vehicleOwner.trim(),
         licensePlateNumber: licensePlateNumber.trim(),
+
+        // بيانات السيارة الإضافية
+        vin: vin?.trim() ?? '',
+        brand: brand?.trim() ?? '',
+        model: model?.trim() ?? '',
+        year: year ?? 0,
+        color: color?.trim() ?? '',
+
+        // الحقول الجديدة
+        ukz: ukz?.trim() ?? '',
+        fin: fin?.trim() ?? '',
+        bestellnummer: bestellnummer?.trim() ?? '',
+        leasingvertragsnummer: leasingvertragsnummer?.trim() ?? '',
+        kostenstelle: kostenstelle?.trim() ?? '',
+        bemerkung: bemerkung?.trim() ?? '',
+        typ: typ?.trim() ?? '',
+
         serviceType: serviceType,
-        pickupAddress: NewAddress(
-          street: pickupStreet.trim(),
-          houseNumber: pickupHouseNumber.trim(),
-          zipCode: pickupZipCode.trim(),
-          city: pickupCity.trim(),
-        ),
-        deliveryAddress: NewAddress(
-          street: deliveryStreet.trim(),
-          houseNumber: deliveryHouseNumber.trim(),
-          zipCode: deliveryZipCode.trim(),
-          city: deliveryCity.trim(),
-        ),
+
+        // بيانات صاحب الفاتورة
+        isSameBilling: isSameBilling,
+        billingName: isSameBilling ? null : billingName?.trim(),
+        billingPhone: isSameBilling ? null : billingPhone?.trim(),
+        billingEmail: isSameBilling ? null : billingEmail?.trim(),
+        billingAddress: isSameBilling ? null : billingAddress,
+
+        // استخدام الأغراض المحولة
+        items: items ?? [], // سيتم التعامل معها في toJson
+
+        pickupAddress: pickupAddress,
+        deliveryAddress: deliveryAddress,
         driverId: currentUserId,
+
+        damages: damages ?? [],
+
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -203,18 +265,20 @@ class NewOrderController extends GetxController {
     } catch (e) {
       _errorMessage.value = e.toString();
       _showErrorSnackbar('failed_to_create_order'.tr, e.toString());
+      print('❌ تفاصيل الخطأ: $e');
       return null;
     } finally {
       _isCreating.value = false;
     }
   }
 
-// Update order details with validation (continued)
+  // Update order details with validation - تم تحديثها لدعم بيانات صاحب الفاتورة
   Future<bool> updateOrderDetails({
     required String orderId,
     required String client,
     required String clientPhone,
     required String clientEmail,
+    String? clientAddress, // جديد
     required String description,
     required String vehicleOwner,
     required String licensePlateNumber,
@@ -228,6 +292,12 @@ class NewOrderController extends GetxController {
     String? serviceDescription,
     NewAddress? pickupAddress,
     NewAddress? deliveryAddress,
+    // بيانات صاحب الفاتورة الجديدة
+    bool? isSameBilling,
+    String? billingName,
+    String? billingPhone,
+    String? billingEmail,
+    String? billingAddress,
   }) async {
     try {
       _isCreating.value = true;
@@ -249,10 +319,17 @@ class NewOrderController extends GetxController {
         'client': client.trim(),
         'clientPhone': clientPhone.trim(),
         'clientEmail': clientEmail.trim(),
+        'clientAddress': clientAddress?.trim(), // جديد
         'description': description.trim(),
         'vehicleOwner': vehicleOwner.trim(),
         'licensePlateNumber': licensePlateNumber.trim(),
         'comments': comments?.trim() ?? currentOrder.comments,
+        // بيانات صاحب الفاتورة
+        'isSameBilling': isSameBilling ?? currentOrder.isSameBilling,
+        'billingName': billingName?.trim(),
+        'billingPhone': billingPhone?.trim(),
+        'billingEmail': billingEmail?.trim(),
+        'billingAddress': billingAddress?.trim(),
         // إضافة الحقول الإضافية إذا كانت موجودة في النموذج
         if (vin != null) 'vin': vin.trim(),
         if (brand != null) 'brand': brand.trim(),
@@ -308,7 +385,7 @@ class NewOrderController extends GetxController {
     }
   }
 
-  // Update full order with validation
+  // Update full order with validation - تم تحديثها لدعم بيانات صاحب الفاتورة
   Future<bool> updateFullOrder({
     required String orderId,
     required Map<String, dynamic> orderData,
@@ -320,15 +397,25 @@ class NewOrderController extends GetxController {
       print('🔄 ${'starting_order_update'.tr}: $orderId');
       print('📊 ${'incoming_data'.tr}: ${orderData.keys.join(', ')}');
 
+      // التحقق من وجود الأضرار في البيانات الواردة
+      if (orderData.containsKey('damages')) {
+        print('✅ الأضرار موجودة في البيانات الواردة');
+        print('📊 عدد الأضرار: ${(orderData['damages'] as List).length}');
+        for (int i = 0; i < (orderData['damages'] as List).length; i++) {
+          print('📊 ضرر ${i + 1}: ${(orderData['damages'] as List)[i]}');
+        }
+      } else {
+        print('⚠️ لا توجد أضرار في البيانات الواردة');
+      }
+
       final currentOrder = getOrderById(orderId);
       if (currentOrder == null) {
         throw Exception('order_not_found_locally'.tr);
       }
 
-
-
-      // تحضير البيانات للإرسال
+      // تحضير البيانات للإرسال مع دعم جميع الحقول الجديدة
       final Map<String, dynamic> updateData = {
+        // البيانات الأساسية
         'client': orderData['client']?.toString()?.trim() ?? '',
         'clientPhone': orderData['clientPhone']?.toString()?.trim() ?? '',
         'clientEmail': orderData['clientEmail']?.toString()?.trim() ?? '',
@@ -337,65 +424,157 @@ class NewOrderController extends GetxController {
         'vehicleOwner': orderData['vehicleOwner']?.toString()?.trim() ?? '',
         'licensePlateNumber': orderData['licensePlateNumber']?.toString()?.trim() ?? '',
         'serviceType': orderData['serviceType']?.toString() ?? currentOrder.serviceType.toString().split('.').last.toUpperCase(),
+
+        // ===== الحقول الجديدة - معالجة شاملة =====
+
+        // بيانات صاحب الفاتورة
+        'isSameBilling': orderData['isSameBilling'] ?? currentOrder.isSameBilling,
+        'billingName': orderData['billingName']?.toString()?.trim(),
+        'billingPhone': orderData['billingPhone']?.toString()?.trim(),
+        'billingEmail': orderData['billingEmail']?.toString()?.trim(),
+
+        // الحقول الإضافية للسيارة
+        'ukz': orderData['ukz']?.toString()?.trim() ?? currentOrder.ukz,
+        'fin': orderData['fin']?.toString()?.trim() ?? currentOrder.fin,
+        'bestellnummer': orderData['bestellnummer']?.toString()?.trim() ?? currentOrder.bestellnummer,
+        'leasingvertragsnummer': orderData['leasingvertragsnummer']?.toString()?.trim() ?? currentOrder.leasingvertragsnummer,
+        'kostenstelle': orderData['kostenstelle']?.toString()?.trim() ?? currentOrder.kostenstelle,
+        'bemerkung': orderData['bemerkung']?.toString()?.trim() ?? currentOrder.bemerkung,
+        'typ': orderData['typ']?.toString()?.trim() ?? currentOrder.typ,
+
+        // الأغراض
+        'items': orderData['items'] ?? currentOrder.items.map((item) => item.toString().split('.').last).toList(),
       };
 
-      // معالجة عنوان الاستلام
+      // معالجة عنوان العميل
+      if (orderData['clientAddress'] != null) {
+        final clientAddressData = orderData['clientAddress'] as Map<String, dynamic>;
+        updateData['clientAddress'] = {
+          'street': clientAddressData['street']?.toString()?.trim() ?? '',
+          'houseNumber': clientAddressData['houseNumber']?.toString()?.trim() ?? '',
+          'zipCode': clientAddressData['zipCode']?.toString()?.trim() ?? '',
+          'city': clientAddressData['city']?.toString()?.trim() ?? '',
+          'country': clientAddressData['country']?.toString()?.trim() ?? 'Deutschland',
+        };
+      } else if (currentOrder.clientAddress != null) {
+        updateData['clientAddress'] = currentOrder.clientAddress!.toJson();
+      }
+
+      // معالجة عنوان صاحب الفاتورة
+      if (orderData['billingAddress'] != null) {
+        final billingAddressData = orderData['billingAddress'] as Map<String, dynamic>;
+        updateData['billingAddress'] = {
+          'street': billingAddressData['street']?.toString()?.trim() ?? '',
+          'houseNumber': billingAddressData['houseNumber']?.toString()?.trim() ?? '',
+          'zipCode': billingAddressData['zipCode']?.toString()?.trim() ?? '',
+          'city': billingAddressData['city']?.toString()?.trim() ?? '',
+          'country': billingAddressData['country']?.toString()?.trim() ?? 'Deutschland',
+        };
+      } else if (currentOrder.billingAddress != null) {
+        updateData['billingAddress'] = currentOrder.billingAddress!.toJson();
+      }
+
+      // معالجة عنوان الاستلام مع الحقول الجديدة
       if (orderData['pickupAddress'] != null) {
         final pickupData = orderData['pickupAddress'] as Map<String, dynamic>;
-        updateData['pickupAddress'] = <String, dynamic>{
+        updateData['pickupAddress'] = {
           'street': pickupData['street']?.toString()?.trim() ?? '',
           'houseNumber': pickupData['houseNumber']?.toString()?.trim() ?? '',
           'zipCode': pickupData['zipCode']?.toString()?.trim() ?? '',
           'city': pickupData['city']?.toString()?.trim() ?? '',
           'country': pickupData['country']?.toString()?.trim() ?? currentOrder.pickupAddress.country,
+
+          // الحقول الجديدة للعنوان
+          'date': pickupData['date']?.toString(),
+          'companyName': pickupData['companyName']?.toString()?.trim(),
+          'contactPersonName': pickupData['contactPersonName']?.toString()?.trim(),
+          'contactPersonPhone': pickupData['contactPersonPhone']?.toString()?.trim(),
+          'contactPersonEmail': pickupData['contactPersonEmail']?.toString()?.trim(),
+          'fuelLevel': pickupData['fuelLevel'] is int ? pickupData['fuelLevel'] :
+          (pickupData['fuelLevel'] != null ? int.tryParse(pickupData['fuelLevel'].toString()) : null),
+          'fuelMeter': pickupData['fuelMeter'] is double ? pickupData['fuelMeter'] :
+          (pickupData['fuelMeter'] != null ? double.tryParse(pickupData['fuelMeter'].toString()) : null),
         };
       } else {
-        updateData['pickupAddress'] = <String, dynamic>{
-          'street': currentOrder.pickupAddress.street,
-          'houseNumber': currentOrder.pickupAddress.houseNumber,
-          'zipCode': currentOrder.pickupAddress.zipCode,
-          'city': currentOrder.pickupAddress.city,
-          'country': currentOrder.pickupAddress.country,
-        };
+        updateData['pickupAddress'] = currentOrder.pickupAddress.toJson();
       }
 
-      // معالجة عنوان التسليم
+      // معالجة عنوان التسليم مع الحقول الجديدة
       if (orderData['deliveryAddress'] != null) {
         final deliveryData = orderData['deliveryAddress'] as Map<String, dynamic>;
-        updateData['deliveryAddress'] = <String, dynamic>{
+        updateData['deliveryAddress'] = {
           'street': deliveryData['street']?.toString()?.trim() ?? '',
           'houseNumber': deliveryData['houseNumber']?.toString()?.trim() ?? '',
           'zipCode': deliveryData['zipCode']?.toString()?.trim() ?? '',
           'city': deliveryData['city']?.toString()?.trim() ?? '',
           'country': deliveryData['country']?.toString()?.trim() ?? currentOrder.deliveryAddress.country,
+
+          // الحقول الجديدة للعنوان
+          'date': deliveryData['date']?.toString(),
+          'companyName': deliveryData['companyName']?.toString()?.trim(),
+          'contactPersonName': deliveryData['contactPersonName']?.toString()?.trim(),
+          'contactPersonPhone': deliveryData['contactPersonPhone']?.toString()?.trim(),
+          'contactPersonEmail': deliveryData['contactPersonEmail']?.toString()?.trim(),
+          'fuelLevel': deliveryData['fuelLevel'] is int ? deliveryData['fuelLevel'] :
+          (deliveryData['fuelLevel'] != null ? int.tryParse(deliveryData['fuelLevel'].toString()) : null),
+          'fuelMeter': deliveryData['fuelMeter'] is double ? deliveryData['fuelMeter'] :
+          (deliveryData['fuelMeter'] != null ? double.tryParse(deliveryData['fuelMeter'].toString()) : null),
         };
       } else {
-        updateData['deliveryAddress'] = <String, dynamic>{
-          'street': currentOrder.deliveryAddress.street,
-          'houseNumber': currentOrder.deliveryAddress.houseNumber,
-          'zipCode': currentOrder.deliveryAddress.zipCode,
-          'city': currentOrder.deliveryAddress.city,
-          'country': currentOrder.deliveryAddress.country,
-        };
+        updateData['deliveryAddress'] = currentOrder.deliveryAddress.toJson();
+      }
+
+      // ===== معالجة الأضرار - هذا هو الإصلاح الرئيسي! =====
+      if (orderData['damages'] != null && orderData['damages'] is List) {
+        final damagesData = orderData['damages'] as List;
+        print('🔧 معالجة ${damagesData.length} ضرر...');
+
+        updateData['damages'] = damagesData.map((damage) {
+          if (damage is Map<String, dynamic>) {
+            final processedDamage = {
+              'side': damage['side']?.toString()?.toUpperCase() ?? 'FRONT',
+              'type': damage['type']?.toString()?.toUpperCase() ?? 'DENT_BUMP',
+              'description': damage['description']?.toString()?.trim(),
+            };
+            print('🔧 ضرر مُعالج: $processedDamage');
+            return processedDamage;
+          }
+          return damage;
+        }).toList();
+
+        print('✅ تم معالجة ${(updateData['damages'] as List).length} ضرر');
+      } else {
+        // إذا لم تكن هناك أضرار في البيانات الجديدة، استخدم الموجودة
+        updateData['damages'] = currentOrder.damages.map((damage) => {
+          'side': _convertVehicleSideForBackend(damage.side),
+          'type': _convertDamageTypeForBackend(damage.type),
+          'description': damage.description,
+        }).toList();
+        print('📋 استخدام الأضرار الموجودة: ${(updateData['damages'] as List).length}');
       }
 
       print('📤 ${'sending_data_to_server'.tr}...');
       print('📋 ${'final_data'.tr}: ${updateData.keys.join(', ')}');
 
-      // إرسال التحديث للخادم باستخدام Map بدلاً من NewOrder
+      // التحقق النهائي من وجود الأضرار قبل الإرسال
+      if (updateData.containsKey('damages')) {
+        print('✅ الأضرار موجودة في البيانات النهائية');
+        print('📊 عدد الأضرار: ${(updateData['damages'] as List).length}');
+      } else {
+        print('❌ الأضرار مفقودة من البيانات النهائية!');
+      }
+
+      // إرسال التحديث للخادم
       final updatedOrder = await _orderService.updateOrderData(orderId, updateData);
 
       if (updatedOrder != null) {
-        // تحديث الطلبية في القائمة المحلية
         final index = _orders.indexWhere((o) => o.id == orderId);
         if (index != -1) {
           _orders[index] = updatedOrder;
           print('✅ ${'order_updated_locally'.tr}');
         }
 
-        // إشعار جميع الكونترولرز المهتمة بالتحديث
         _notifyOrderUpdate(updatedOrder);
-
         _showSuccessSnackbar('order_updated_success'.tr, 'all_changes_saved'.tr);
         return true;
       } else {
@@ -405,11 +584,42 @@ class NewOrderController extends GetxController {
       final errorMessage = e.toString();
       _errorMessage.value = errorMessage;
       print('❌ ${'order_update_error'.tr}: $errorMessage');
-
       _showErrorSnackbar('failed_to_update_order'.tr, errorMessage);
       return false;
     } finally {
       _isCreating.value = false;
+    }
+  }
+
+  String _convertVehicleSideForBackend(VehicleSide side) {
+    switch (side) {
+      case VehicleSide.FRONT:
+        return 'FRONT';
+      case VehicleSide.REAR:
+        return 'REAR';
+      case VehicleSide.LEFT:
+        return 'LEFT';
+      case VehicleSide.RIGHT:
+        return 'RIGHT';
+      case VehicleSide.TOP:
+        return 'TOP';
+    }
+  }
+
+  String _convertDamageTypeForBackend(DamageType type) {
+    switch (type) {
+      case DamageType.DENT_BUMP:
+        return 'DENT_BUMP';
+      case DamageType.STONE_CHIP:
+        return 'STONE_CHIP';
+      case DamageType.SCRATCH_GRAZE:
+        return 'SCRATCH_GRAZE';
+      case DamageType.PAINT_DAMAGE:
+        return 'PAINT_DAMAGE';
+      case DamageType.CRACK_BREAK:
+        return 'CRACK_BREAK';
+      case DamageType.MISSING:
+        return 'MISSING';
     }
   }
 
@@ -562,7 +772,7 @@ class NewOrderController extends GetxController {
       // التحقق من صحة تدفق الحالات
       if (!_orderService.canUpdateStatus(order.status, newStatus)) {
         throw Exception('cannot_update_status'.tr.replaceAll(
-          'from', _orderService.getStatusDisplayText(order.status)
+            'from', _orderService.getStatusDisplayText(order.status)
         ).replaceAll('to', _orderService.getStatusDisplayText(newStatus))
 
         );
@@ -1127,22 +1337,101 @@ class NewOrderController extends GetxController {
     }
   }
 
-  // Private helper methods
+  // Private helper methods - تم تحديثها لدعم بيانات صاحب الفاتورة
   String? _validateOrderData({
     required String client,
     required String vehicleOwner,
     required String licensePlateNumber,
-    required String pickupStreet,
-    required String pickupCity,
-    required String deliveryStreet,
-    required String deliveryCity,
+
+    required NewAddress pickupAddress,
+    required NewAddress deliveryAddress,
+
+    NewAddress? clientAddress, // تم التغيير
+    bool isSameBilling = true,
+    String? billingName,
+    String? billingPhone,
+    String? billingEmail,
+    NewAddress? billingAddress, // تم التغيير
   }) {
     if (client.trim().isEmpty) return 'client_name_required'.tr;
     if (vehicleOwner.trim().isEmpty) return 'vehicle_owner_name_required'.tr;
     if (licensePlateNumber.trim().isEmpty) return 'vehicle_plate_required'.tr;
-    if (pickupStreet.trim().isEmpty || pickupCity.trim().isEmpty) return 'pickup_address_required'.tr;
-    if (deliveryStreet.trim().isEmpty || deliveryCity.trim().isEmpty) return 'delivery_address_required'.tr;
+
+    if (!_isValidAddress(pickupAddress)) return 'pickup_address_required'.tr;
+    if (!_isValidAddress(deliveryAddress)) return 'delivery_address_required'.tr;
+
+    // التحقق من بيانات صاحب الفاتورة إذا لم يكن نفس العميل
+    if (!isSameBilling) {
+      if (billingName == null || billingName.trim().isEmpty) return 'billing_name_required'.tr;
+      if (billingPhone == null || billingPhone.trim().isEmpty) return 'billing_phone_required'.tr;
+      if (billingEmail == null || billingEmail.trim().isEmpty) return 'billing_email_required'.tr;
+      if (billingAddress == null || !_isValidAddress(billingAddress)) return 'billing_address_required'.tr;
+    }
+
     return null;
+  }
+
+  // دالة مساعدة للحصول على نص الغرض
+  String getVehicleItemText(VehicleItem item) {
+    switch (item) {
+      case VehicleItem.PARTITION_NET:
+        return 'partition_net'.tr;
+      case VehicleItem.WINTER_TIRES:
+        return 'winter_tires'.tr;
+      case VehicleItem.HUBCAPS:
+        return 'hubcaps'.tr;
+      case VehicleItem.REAR_PARCEL_SHELF:
+        return 'rear_parcel_shelf'.tr;
+      case VehicleItem.NAVIGATION_SYSTEM:
+        return 'navigation_system'.tr;
+      case VehicleItem.TRUNK_ROLL_COVER:
+        return 'trunk_roll_cover'.tr;
+      case VehicleItem.SAFETY_VEST:
+        return 'safety_vest'.tr;
+      case VehicleItem.VEHICLE_KEYS:
+        return 'vehicle_keys'.tr;
+      case VehicleItem.WARNING_TRIANGLE:
+        return 'warning_triangle'.tr;
+      case VehicleItem.RADIO:
+        return 'radio'.tr;
+      case VehicleItem.ALLOY_WHEELS:
+        return 'alloy_wheels'.tr;
+      case VehicleItem.SUMMER_TIRES:
+        return 'summer_tires'.tr;
+      case VehicleItem.OPERATING_MANUAL:
+        return 'operating_manual'.tr;
+      case VehicleItem.REGISTRATION_DOCUMENT:
+        return 'registration_document'.tr;
+      case VehicleItem.COMPRESSOR_REPAIR_KIT:
+        return 'compressor_repair_kit'.tr;
+      case VehicleItem.TOOLS_JACK:
+        return 'tools_jack'.tr;
+      case VehicleItem.SECOND_SET_OF_TIRES:
+        return 'second_set_of_tires'.tr;
+      case VehicleItem.EMERGENCY_WHEEL:
+        return 'emergency_wheel'.tr;
+      case VehicleItem.ANTENNA:
+        return 'antenna'.tr;
+      case VehicleItem.FUEL_CARD:
+        return 'fuel_card'.tr;
+      case VehicleItem.FIRST_AID_KIT:
+        return 'first_aid_kit'.tr;
+      case VehicleItem.SPARE_TIRE:
+        return 'spare_tire'.tr;
+      case VehicleItem.SERVICE_BOOK:
+        return 'service_book'.tr;
+      default:
+        return item
+            .toString()
+            .split('.')
+            .last;
+    }
+  }
+
+
+  bool _isValidAddress(NewAddress address) {
+    return address.street.trim().isNotEmpty &&
+        address.city.trim().isNotEmpty;
   }
 
   // Update search query
@@ -1274,17 +1563,714 @@ class NewOrderController extends GetxController {
   }
 
   Future<void> sendEmailReport(NewOrder order) async {
+    await _sendEmailReportWithDialog(order);
+  }
+  // دالة محسنة لإرسال التقرير عبر البريد الإلكتروني مع Dialogs
+  Future<void> _sendEmailReportWithDialog(NewOrder order) async {
     try {
-      // تفترض وجود دالة في الـ NewOrderService لإرسال البريد (حسب المثال السابق)
-      bool success = await _orderService.sendOrderReportEmail(order.id, order.clientEmail);
-      if (success) {
-        // عرض رسالة نجاح، يمكنك استخدام Get.snackbar أو أي طريقة تفضلها
-        Get.snackbar('success'.tr, 'email_report_success'.tr);
+      // التحقق من وجود بريد إلكتروني للعميل
+      if (order.clientEmail.isEmpty) {
+        final email = await _requestEmailInput(order);
+        if (email == null || email.isEmpty) return; // المستخدم ألغى العملية
+
+        await _performEmailSendWithConfirmation(order, email);
       } else {
-        Get.snackbar('error'.tr, 'email_report_failed'.tr);
+        await _performEmailSendWithConfirmation(order, order.clientEmail);
       }
     } catch (e) {
-      Get.snackbar('error'.tr, 'email_send_error'.tr.replaceAll('error', e.toString()));
+      print('❌ خطأ في إرسال التقرير بالبريد: $e');
+      _showErrorSnackbar('email_send_error'.tr, e.toString());
+    }
+  }
+
+
+  // طلب إدخال البريد الإلكتروني من المستخدم
+  Future<String?> _requestEmailInput(NewOrder order) async {
+    final TextEditingController emailController = TextEditingController();
+    final RxString emailError = ''.obs;
+
+    return await Get.dialog<String>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.email_outlined, color: Colors.blue.shade600, size: 22),
+            SizedBox(width: 8),
+            Text('enter_email_address'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'no_email_found_for_client'.tr.replaceAll('client', order.client),
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            Obx(() => TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'email_address'.tr,
+                hintText: 'example@company.com',
+                prefixIcon: Icon(Icons.email_outlined),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                errorText: emailError.value.isEmpty ? null : emailError.value,
+              ),
+              onChanged: (value) => emailError.value = '',
+            )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('cancel'.tr),
+          ),
+          Obx(() => ElevatedButton(
+            onPressed: emailController.text.trim().isEmpty ? null : () {
+              final email = emailController.text.trim();
+              if (_isValidEmail(email)) {
+                Get.back(result: email);
+              } else {
+                emailError.value = 'invalid_email_format'.tr;
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('continue'.tr, style: TextStyle(color: Colors.white)),
+          )),
+        ],
+      ),
+    );
+  }
+
+  // تنفيذ الإرسال مع تأكيد المستخدم
+  Future<void> _performEmailSendWithConfirmation(NewOrder order, String email) async {
+    // عرض dialog تأكيد
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.send, color: Colors.blue.shade600, size: 22),
+            SizedBox(width: 8),
+            Text('confirm_send_report'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'confirm_send_html_report'.tr,
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(Icons.person, 'client'.tr, order.client),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.confirmation_number, 'order_number'.tr,
+                      order.orderNumber ?? order.id),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.email, 'email_address'.tr, email),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.description, 'report_type'.tr, 'HTML Report'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text('cancel'.tr),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.send, size: 16, color: Colors.white),
+                SizedBox(width: 6),
+                Text('send_report'.tr, style: TextStyle(color: Colors.white)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _executeEmailSend(order, email);
+    }
+  }
+
+  // تنفيذ الإرسال الفعلي
+  Future<void> _executeEmailSend(NewOrder order, String email) async {
+    // عرض مؤشر تحميل
+    Get.dialog(
+      WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.blue.shade600),
+                SizedBox(height: 16),
+                Text('sending_report_email'.tr, style: TextStyle(fontSize: 14)),
+                SizedBox(height: 8),
+                Text(
+                  email,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+
+    try {
+      // إرسال التقرير
+      final result = await _orderService.sendOrderHtmlReportByEmail(order.id!, email);
+
+      // إغلاق مؤشر التحميل
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      // عرض النتيجة
+      if (result.success) {
+        await _showEmailSuccessDialog(result, order);
+      } else {
+        await _showEmailFailureDialog(result, order, email);
+      }
+
+    } catch (e) {
+      // إغلاق مؤشر التحميل في حالة الخطأ
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      await _showEmailErrorDialog(e.toString(), order, email);
+    }
+  }
+
+  // عرض dialog نجاح الإرسال
+  Future<void> _showEmailSuccessDialog(EmailReportResult result, NewOrder order) async {
+    await Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green.shade600, size: 24),
+            SizedBox(width: 8),
+            Text('email_sent_successfully'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'report_sent_successfully_message'.tr,
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(Icons.email, 'sent_to'.tr, result.email, Colors.green.shade600),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.access_time, 'sent_at'.tr,
+                      _formatDateTime(result.timestamp), Colors.green.shade600),
+                  if (result.message.isNotEmpty) ...[
+                    SizedBox(height: 6),
+                    Text(
+                      result.message,
+                      style: TextStyle(
+                        color: Colors.green.shade700,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Get.back(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('excellent'.tr, style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    // عرض snackbar إضافي
+    Future.delayed(Duration(milliseconds: 500), () {
+      _showSuccessSnackbar(
+        '📧 ${'email_sent'.tr}',
+        'html_report_sent_to'.tr.replaceAll('email', result.email),
+      );
+    });
+  }
+
+  // عرض dialog فشل الإرسال
+  Future<void> _showEmailFailureDialog(EmailReportResult result, NewOrder order, String email) async {
+    await Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red.shade600, size: 24),
+            SizedBox(width: 8),
+            Text('email_send_failed'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'report_send_failed_message'.tr,
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'error_details'.tr,
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    result.message.isNotEmpty ? result.message : 'unknown_error'.tr,
+                    style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+                  ),
+                  if (result.error != null) ...[
+                    SizedBox(height: 8),
+                    ExpansionTile(
+                      title: Text(
+                        'technical_details'.tr,
+                        style: TextStyle(fontSize: 12, color: Colors.red.shade600),
+                      ),
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            result.error!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontFamily: 'monospace',
+                              color: Colors.red.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('ok'.tr),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              _executeEmailSend(order, email); // إعادة المحاولة
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('retry'.tr, style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // عرض dialog خطأ في الاتصال
+  Future<void> _showEmailErrorDialog(String error, NewOrder order, String email) async {
+    await Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.orange.shade600, size: 24),
+            SizedBox(width: 8),
+            Text('connection_error'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'email_connection_error_occurred'.tr,
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'suggested_solutions'.tr,
+                    style: TextStyle(
+                      color: Colors.orange.shade700,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  _buildSolutionItem('check_internet_connection'.tr),
+                  _buildSolutionItem('verify_email_address'.tr),
+                  _buildSolutionItem('try_again_later'.tr),
+                  _buildSolutionItem('contact_support_if_persists'.tr),
+                ],
+              ),
+            ),
+            SizedBox(height: 12),
+            ExpansionTile(
+              title: Text(
+                'technical_error_details'.tr,
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+              ),
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    error,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('cancel'.tr),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              _executeEmailSend(order, email); // إعادة المحاولة
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade600,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('retry'.tr, style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // دالة مساعدة لبناء عنصر الحل المقترح
+  Widget _buildSolutionItem(String solution) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '• ',
+            style: TextStyle(color: Colors.orange.shade700, fontSize: 12),
+          ),
+          Expanded(
+            child: Text(
+              solution,
+              style: TextStyle(color: Colors.orange.shade700, fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // دالة مساعدة لبناء صف معلومات
+  Widget _buildInfoRow(IconData icon, String label, String value, [Color? color]) {
+    final iconColor = color ?? Colors.blue.shade600;
+    final textColor = color ?? Colors.blue.shade700;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: iconColor, size: 16),
+        SizedBox(width: 6),
+        Text(
+          '$label: ',
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // دالة مساعدة للتحقق من صحة البريد الإلكتروني
+  bool _isValidEmail(String email) {
+    // final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+);
+    //     return emailRegex.test(email.trim());
+    return true;
+  }
+
+  // دالة مساعدة لتنسيق التاريخ والوقت
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'just_now'.tr;
+    } else if (difference.inHours < 1) {
+      return 'minutes_ago'.tr.replaceAll('count', difference.inMinutes.toString());
+    } else if (difference.inDays < 1) {
+      return 'hours_ago'.tr.replaceAll('count', difference.inHours.toString());
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+  }
+
+  // توليد تقرير HTML محسن
+  Future<void> generateHtmlReport(String orderId) async {
+    try {
+      _isCreating.value = true;
+
+      // عرض مؤشر تحميل
+      Get.dialog(
+        Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.blue.shade600),
+                SizedBox(height: 16),
+                Text('generating_html_report'.tr, style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+
+      // توليد التقرير
+      final htmlContent = await _orderService.generateOrderHtmlReport(orderId);
+
+      // إغلاق مؤشر التحميل
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      // حفظ وعرض التقرير
+      await _saveAndDisplayHtmlReport(htmlContent, orderId);
+
+    } catch (e) {
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      _showErrorSnackbar('html_report_generation_failed'.tr, e.toString());
+    } finally {
+      _isCreating.value = false;
+    }
+  }
+
+  // حفظ وعرض تقرير HTML
+  Future<void> _saveAndDisplayHtmlReport(String htmlContent, String orderId) async {
+    try {
+      // الحصول على مسار التخزين
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'Fahrzeuguebergabe_$orderId\_$timestamp.html';
+      final filePath = '${directory.path}/$fileName';
+
+      // حفظ الملف
+      final file = File(filePath);
+      await file.writeAsString(htmlContent, encoding: utf8);
+
+      // فتح الملف
+      final result = await OpenFilex.open(filePath);
+
+      if (result.type == ResultType.done) {
+        _showSuccessSnackbar(
+          '📄 ${'html_report_generated'.tr}',
+          'html_report_ready_to_view'.tr,
+        );
+      } else {
+        throw Exception('failed_to_open_html_file'.tr);
+      }
+
+    } catch (e) {
+      throw Exception('failed_to_save_html_report'.tr.replaceAll('error', e.toString()));
+    }
+  }
+
+  // معاينة تقرير HTML
+  Future<void> previewHtmlReport(String orderId) async {
+    try {
+      _isCreating.value = true;
+
+      Get.dialog(
+        Center(
+          child: Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.blue.shade600),
+                SizedBox(height: 16),
+                Text('loading_html_preview'.tr, style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+
+      // الحصول على معاينة التقرير
+      final htmlContent = await _orderService.previewOrderHtmlReport(orderId);
+
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      // عرض المعاينة في WebView أو متصفح خارجي
+      await _displayHtmlPreview(htmlContent, orderId);
+
+    } catch (e) {
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      _showErrorSnackbar('html_preview_failed'.tr, e.toString());
+    } finally {
+      _isCreating.value = false;
+    }
+  }
+
+  // عرض معاينة HTML
+  Future<void> _displayHtmlPreview(String htmlContent, String orderId) async {
+    try {
+      // حفظ الملف للمعاينة
+      final directory = await getTemporaryDirectory();
+      final fileName = 'Preview_$orderId\_${DateTime.now().millisecondsSinceEpoch}.html';
+      final filePath = '${directory.path}/$fileName';
+
+      final file = File(filePath);
+      await file.writeAsString(htmlContent, encoding: utf8);
+
+      // فتح للمعاينة
+      await OpenFilex.open(filePath);
+
+      _showSuccessSnackbar(
+        '👁️ ${'html_preview_opened'.tr}',
+        'html_preview_ready'.tr,
+      );
+
+    } catch (e) {
+      throw Exception('failed_to_display_preview'.tr.replaceAll('error', e.toString()));
     }
   }
 

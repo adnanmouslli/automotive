@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:signature/signature.dart';
 import 'dart:typed_data';
 
+import '../utils/AppColors.dart';
+
 class SignaturePage extends StatefulWidget {
   @override
   _SignaturePageState createState() => _SignaturePageState();
@@ -26,8 +28,8 @@ class _SignaturePageState extends State<SignaturePage> {
 
     _signatureController = SignatureController(
       penStrokeWidth: 3,
-      penColor: Colors.black,
-      exportBackgroundColor: Colors.white,
+      penColor: AppColors.darkGray,
+      exportBackgroundColor: AppColors.pureWhite,
     );
 
     _nameController = TextEditingController(text: defaultName);
@@ -37,16 +39,16 @@ class _SignaturePageState extends State<SignaturePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
-        backgroundColor: Colors.blue.shade600,
-        foregroundColor: Colors.white,
+        title: Text(title, style: TextStyle(color: AppColors.whiteText)),
+        backgroundColor: AppColors.primaryBlue,
+        foregroundColor: AppColors.whiteText,
         actions: [
           TextButton.icon(
             onPressed: _clearSignature,
-            icon: const Icon(Icons.clear, color: Colors.white),
+            icon: Icon(Icons.clear, color: AppColors.whiteText),
             label: Text(
               'clear_signature'.tr,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.whiteText),
             ),
           ),
         ],
@@ -56,16 +58,28 @@ class _SignaturePageState extends State<SignaturePage> {
           // Name input
           Container(
             padding: const EdgeInsets.all(20),
-            color: Colors.grey.shade50,
+            color: AppColors.lightGray,
             child: TextField(
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'signer_name'.tr,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: AppColors.borderGray),
                 ),
-                prefixIcon: const Icon(Icons.person),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: AppColors.borderGray),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: AppColors.primaryBlue, width: 2),
+                ),
+                prefixIcon: Icon(Icons.person, color: AppColors.mediumGray),
+                filled: true,
+                fillColor: AppColors.pureWhite,
               ),
+              style: TextStyle(color: AppColors.darkGray),
             ),
           ),
 
@@ -76,7 +90,7 @@ class _SignaturePageState extends State<SignaturePage> {
               'please_sign_below'.tr,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade700,
+                color: AppColors.mediumGray,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
@@ -88,14 +102,14 @@ class _SignaturePageState extends State<SignaturePage> {
             child: Container(
               margin: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300, width: 2),
+                border: Border.all(color: AppColors.borderGray, width: 2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Signature(
                   controller: _signatureController,
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.pureWhite,
                 ),
               ),
             ),
@@ -109,11 +123,9 @@ class _SignaturePageState extends State<SignaturePage> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.all(16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    style: AppColors.secondaryButtonStyle.copyWith(
+                      padding: MaterialStateProperty.all(
+                          const EdgeInsets.all(16)),
                     ),
                     child: Text('cancel'.tr),
                   ),
@@ -122,13 +134,9 @@ class _SignaturePageState extends State<SignaturePage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: _saveSignature,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade600,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.all(16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                    style: AppColors.primaryButtonStyle.copyWith(
+                      padding: MaterialStateProperty.all(
+                          const EdgeInsets.all(16)),
                     ),
                     child: Text('save_signature'.tr),
                   ),
@@ -150,8 +158,8 @@ class _SignaturePageState extends State<SignaturePage> {
       Get.snackbar(
         'signature_error'.tr,
         'enter_signer_name'.tr,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
       );
       return;
@@ -161,8 +169,8 @@ class _SignaturePageState extends State<SignaturePage> {
       Get.snackbar(
         'signature_error'.tr,
         'add_signature_first'.tr,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
       );
       return;
@@ -183,8 +191,8 @@ class _SignaturePageState extends State<SignaturePage> {
       Get.snackbar(
         'signature_error'.tr,
         'signature_save_failed_error'.tr.replaceAll('error', e.toString()),
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
       );
     }

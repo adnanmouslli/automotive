@@ -80,12 +80,12 @@ class NewOrderService {
   // تحضير بيانات الطلبية لتتوافق مع الباك إند
   Map<String, dynamic> _prepareOrderDataForBackend(NewOrder order) {
     return {
+      // البيانات الأساسية
       'client': order.client,
       'clientPhone': order.clientPhone,
       'clientEmail': order.clientEmail,
       'description': order.description,
       'comments': order.comments,
-      'items': order.items,
       'vehicleOwner': order.vehicleOwner,
       'licensePlateNumber': order.licensePlateNumber,
       'vin': order.vin,
@@ -96,9 +96,73 @@ class NewOrderService {
       'vehicleType': order.vehicleType,
       'serviceType': _convertServiceTypeForBackend(order.serviceType),
       'serviceDescription': order.serviceDescription,
+
+      // ===== إضافة الحقول الجديدة =====
+
+      // بيانات صاحب الفاتورة
+      'isSameBilling': order.isSameBilling,
+      'billingName': order.billingName,
+      'billingPhone': order.billingPhone,
+      'billingEmail': order.billingEmail,
+      'billingAddress': order.billingAddress?.toJson(),
+      'clientAddress': order.clientAddress?.toJson(),
+
+      // الحقول الإضافية للسيارة
+      'ukz': order.ukz,
+      'fin': order.fin,
+      'bestellnummer': order.bestellnummer,
+      'leasingvertragsnummer': order.leasingvertragsnummer,
+      'kostenstelle': order.kostenstelle,
+      'bemerkung': order.bemerkung,
+      'typ': order.typ,
+
+      // الأغراض - تحويل صحيح
+      'items': order.items.map((item) => item.toString().split('.').last).toList(),
+
+      // العناوين مع الحقول الجديدة
       'pickupAddress': order.pickupAddress.toJson(),
       'deliveryAddress': order.deliveryAddress.toJson(),
+
+      'damages': order.damages.map((damage) {
+        return {
+          'side': _convertVehicleSideForBackend(damage.side),
+          'type': _convertDamageTypeForBackend(damage.type),
+          'description': damage.description,
+        };
+      }).toList(),
     };
+  }
+
+  String _convertVehicleSideForBackend(VehicleSide side) {
+    switch (side) {
+      case VehicleSide.FRONT:
+        return 'FRONT';
+      case VehicleSide.REAR:
+        return 'REAR';
+      case VehicleSide.LEFT:
+        return 'LEFT';
+      case VehicleSide.RIGHT:
+        return 'RIGHT';
+      case VehicleSide.TOP:
+        return 'TOP';
+    }
+  }
+
+  String _convertDamageTypeForBackend(DamageType type) {
+    switch (type) {
+      case DamageType.DENT_BUMP:
+        return 'DENT_BUMP';
+      case DamageType.STONE_CHIP:
+        return 'STONE_CHIP';
+      case DamageType.SCRATCH_GRAZE:
+        return 'SCRATCH_GRAZE';
+      case DamageType.PAINT_DAMAGE:
+        return 'PAINT_DAMAGE';
+      case DamageType.CRACK_BREAK:
+        return 'CRACK_BREAK';
+      case DamageType.MISSING:
+        return 'MISSING';
+    }
   }
 
   String _convertServiceTypeForBackend(ServiceType serviceType) {
@@ -299,7 +363,56 @@ class NewOrderService {
   Future<NewOrder?> updateOrderData(String orderId, Map<String, dynamic> orderData) async {
     try {
       print('📤 تحديث الطلبية باستخدام Map: $orderId');
-      print('📊 البيانات المرسلة: ${orderData.keys.join(', ')}');
+      print('📊 الحقول المرسلة: ${orderData.keys.join(', ')}');
+
+      // طباعة تفصيلية لبعض الحقول الجديدة للتأكد
+      if (orderData.containsKey('ukz')) print('🔧 UKZ: ${orderData['ukz']}');
+      if (orderData.containsKey('fin')) print('🔧 FIN: ${orderData['fin']}');
+      if (orderData.containsKey('isSameBilling')) print('💳 isSameBilling: ${orderData['isSameBilling']}');
+      if (orderData.containsKey('items')) print('📦 Items: ${orderData['items']}');
+
+      // ===== إضافة طباعة تفصيلية للأضرار =====
+      if (orderData.containsKey('damages')) {
+        final damages = orderData['damages'] as List;
+        print('⚠️ Damages Count: ${damages.length}');
+        for (int i = 0; i < damages.length; i++) {
+          print('⚠️ Damage ${i + 1}: ${damages[i]}');
+        }
+      } else {
+        print('❌ لا توجد أضرار في البيانات المرسلة!');
+      }
+
+      // التحقق من سلامة بيانات الأضرار قبل الإرسال
+      if (orderData.containsKey('damages') && orderData['damages'] is List) {
+        final damages = orderData['damages'] as List;
+        final validDamages = <Map<String, dynamic>>[];
+
+        for (int i = 0; i < damages.length; i++) {
+          final damage = damages[i];
+          if (damage is Map<String, dynamic>) {
+            // التأكد من وجود الحقول المطلوبة
+            final validDamage = {
+              'side': damage['side']?.toString()?.toUpperCase() ?? 'FRONT',
+              'type': damage['type']?.toString()?.toUpperCase() ?? 'DENT_BUMP',
+              'description': damage['description']?.toString()?.trim(),
+            };
+
+            // إزالة الوصف إذا كان فارغاً
+            if (validDamage['description']?.isEmpty == true) {
+              validDamage.remove('description');
+            }
+
+            validDamages.add(validDamage);
+            print('✅ ضرر صحيح ${i + 1}: $validDamage');
+          } else {
+            print('⚠️ تجاهل ضرر غير صحيح ${i + 1}: $damage');
+          }
+        }
+
+        // استبدال البيانات بالبيانات المنظفة
+        orderData['damages'] = validDamages;
+        print('🔧 تم تنظيف الأضرار: ${validDamages.length} ضرر صحيح');
+      }
 
       final response = await http.put(
         Uri.parse('${AppConfig.baseUrl}/orders/$orderId'),
@@ -314,6 +427,12 @@ class NewOrderService {
         if (response.body.isNotEmpty) {
           final data = json.decode(response.body);
           print('✅ تم تحديث الطلبية بنجاح');
+
+          // التحقق من الأضرار في الاستجابة
+          if (data is Map<String, dynamic> && data.containsKey('damages')) {
+            print('✅ الأضرار موجودة في الاستجابة: ${data['damages']}');
+          }
+
           return NewOrder.fromJson(data);
         } else {
           print('⚠️ استجابة فارغة من الخادم');
@@ -337,7 +456,6 @@ class NewOrderService {
     }
   }
 
-
 // تحضير البيانات بتنسيق متوافق مع الباك إند
   Map<String, dynamic> _prepareUpdateDataForBackend(NewOrder order) {
     final updateData = <String, dynamic>{};
@@ -348,43 +466,61 @@ class NewOrderService {
     if (order.clientEmail.isNotEmpty) updateData['clientEmail'] = order.clientEmail.trim();
     if (order.description.isNotEmpty) updateData['description'] = order.description.trim();
     if (order.comments?.isNotEmpty == true) updateData['comments'] = order.comments!.trim();
-    if (order.items.isNotEmpty) updateData['items'] = order.items;
+
+    // ===== إضافة الحقول الجديدة =====
+
+    // بيانات صاحب الفاتورة
+    updateData['isSameBilling'] = order.isSameBilling;
+    if (order.billingName != null) updateData['billingName'] = order.billingName;
+    if (order.billingPhone != null) updateData['billingPhone'] = order.billingPhone;
+    if (order.billingEmail != null) updateData['billingEmail'] = order.billingEmail;
+    if (order.billingAddress != null) updateData['billingAddress'] = order.billingAddress!.toJson();
+    if (order.clientAddress != null) updateData['clientAddress'] = order.clientAddress!.toJson();
+
+    // الحقول الإضافية للسيارة
+    if (order.ukz.isNotEmpty) updateData['ukz'] = order.ukz.trim();
+    if (order.fin.isNotEmpty) updateData['fin'] = order.fin.trim();
+    if (order.bestellnummer.isNotEmpty) updateData['bestellnummer'] = order.bestellnummer.trim();
+    if (order.leasingvertragsnummer.isNotEmpty) updateData['leasingvertragsnummer'] = order.leasingvertragsnummer.trim();
+    if (order.kostenstelle.isNotEmpty) updateData['kostenstelle'] = order.kostenstelle.trim();
+    if (order.bemerkung.isNotEmpty) updateData['bemerkung'] = order.bemerkung.trim();
+    if (order.typ.isNotEmpty) updateData['typ'] = order.typ.trim();
 
     // بيانات المركبة
     if (order.vehicleOwner.isNotEmpty) updateData['vehicleOwner'] = order.vehicleOwner.trim();
     if (order.licensePlateNumber.isNotEmpty) updateData['licensePlateNumber'] = order.licensePlateNumber.trim();
-    if (order.vin.isNotEmpty == true) updateData['vin'] = order.vin!.trim();
-    if (order.brand.isNotEmpty == true) updateData['brand'] = order.brand!.trim();
-    if (order.model.isNotEmpty == true) updateData['model'] = order.model!.trim();
-    if (order.year != null && order.year > 0) updateData['year'] = order.year;
-    if (order.color.isNotEmpty == true) updateData['color'] = order.color!.trim();
+    if (order.vin.isNotEmpty) updateData['vin'] = order.vin.trim();
+    if (order.brand.isNotEmpty) updateData['brand'] = order.brand.trim();
+    if (order.model.isNotEmpty) updateData['model'] = order.model.trim();
+    if (order.year > 0) updateData['year'] = order.year;
+    if (order.color.isNotEmpty) updateData['color'] = order.color.trim();
     if (order.vehicleType.isNotEmpty) updateData['vehicleType'] = order.vehicleType.trim();
+
+    // الأغراض
+    if (order.items.isNotEmpty) {
+      updateData['items'] = order.items.map((item) => item.toString().split('.').last).toList();
+    }
 
     // بيانات الخدمة
     updateData['serviceType'] = _convertServiceTypeForBackend(order.serviceType);
-    if (order.serviceDescription?.isNotEmpty == true) {
-      updateData['serviceDescription'] = order.serviceDescription!.trim();
+    if (order.serviceDescription.isNotEmpty) {
+      updateData['serviceDescription'] = order.serviceDescription.trim();
     }
 
-    // العناوين
-    updateData['pickupAddress'] = {
-      'street': order.pickupAddress.street.trim(),
-      'houseNumber': order.pickupAddress.houseNumber.trim(),
-      'zipCode': order.pickupAddress.zipCode.trim(),
-      'city': order.pickupAddress.city.trim(),
-      'country': order.pickupAddress.country?.trim() ?? 'Deutschland',
-    };
+    // العناوين مع الحقول الجديدة
+    updateData['pickupAddress'] = order.pickupAddress.toJson();
+    updateData['deliveryAddress'] = order.deliveryAddress.toJson();
 
-    updateData['deliveryAddress'] = {
-      'street': order.deliveryAddress.street.trim(),
-      'houseNumber': order.deliveryAddress.houseNumber.trim(),
-      'zipCode': order.deliveryAddress.zipCode.trim(),
-      'city': order.deliveryAddress.city.trim(),
-      'country': order.deliveryAddress.country?.trim() ?? 'Deutschland',
-    };
+    // إضافة الأضرار - هذا كان مفقود!
+    updateData['damages'] = order.damages.map((damage) => {
+      'side': _convertVehicleSideForBackend(damage.side),
+      'type': _convertDamageTypeForBackend(damage.type),
+      'description': damage.description,
+    }).toList();
 
     return updateData;
   }
+
 
   // Upload single image (الطريقة الأصلية)
   Future<OrderImage?> uploadImage({
@@ -1028,22 +1164,47 @@ class NewOrderService {
 
   Future<Uint8List> generateOrderPdf(String orderId) async {
     try {
+      // محاولة الحصول على تقرير HTML أولاً
+      final htmlContent = await generateOrderHtmlReport(orderId);
+
+      // تحويل HTML إلى bytes (مؤقت)
+      return Uint8List.fromList(utf8.encode(htmlContent));
+    } catch (e) {
+      print('❌ تحذير: generateOrderPdf مُستبعدة، استخدم generateOrderHtmlReport');
+      throw Exception('هذه الدالة مُستبعدة، استخدم generateOrderHtmlReport بدلاً من ذلك');
+    }
+  }
+
+  // دالة لإرسال بريد التقرير للطلبية
+  Future<bool> sendOrderReportEmail(String orderId, String email) async {
+    try {
+      final result = await sendOrderHtmlReportByEmail(orderId, email);
+      return result.success;
+    } catch (e) {
+      print('❌ تحذير: sendOrderReportEmail مُستبعدة، استخدم sendOrderHtmlReportByEmail');
+      return false;
+    }
+  }
+
+  // توليد تقرير HTML وتحميله
+  Future<String> generateOrderHtmlReport(String orderId) async {
+    try {
       if (orderId.isEmpty) {
         throw Exception('معرف الطلبية مطلوب');
       }
 
-      print('📄 طلب إنشاء تقرير PDF للطلبية: $orderId');
+      print('📄 طلب إنشاء تقرير HTML للطلبية: $orderId');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/pdf/order/$orderId'),
+        Uri.parse('$baseUrl/reports/order/$orderId/download'),
         headers: _headers,
       );
 
-      print('📨 استجابة إنشاء PDF: ${response.statusCode}');
+      print('📨 استجابة إنشاء تقرير HTML: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        print('✅ تم إنشاء PDF بنجاح (حجم البيانات: ${response.bodyBytes.length} بايت)');
-        return response.bodyBytes;
+        print('✅ تم إنشاء تقرير HTML بنجاح');
+        return response.body;
       } else {
         String errorMessage = 'فشل في إنشاء التقرير';
         try {
@@ -1059,32 +1220,274 @@ class NewOrderService {
     } on SocketException {
       throw Exception('فشل في الاتصال بالخادم. تحقق من الاتصال بالإنترنت');
     } catch (e) {
-      print('❌ خطأ في إنشاء التقرير: $e');
+      print('❌ خطأ في إنشاء تقرير HTML: $e');
       throw Exception('فشل في إنشاء التقرير: ${e.toString()}');
     }
   }
 
-  // دالة لإرسال بريد التقرير للطلبية
-  Future<bool> sendOrderReportEmail(String orderId, String email) async {
-    final url = Uri.parse('$baseUrl/pdf/order/$orderId/send-email');
+  // معاينة تقرير HTML
+  Future<String> previewOrderHtmlReport(String orderId) async {
+    try {
+      if (orderId.isEmpty) {
+        throw Exception('معرف الطلبية مطلوب');
+      }
 
-    final body = jsonEncode({
-      'email': email,
-    });
+      print('👁️ طلب معاينة تقرير HTML للطلبية: $orderId');
 
-    final response = await http.post(url, headers: _headers, body: body);
+      final response = await http.get(
+        Uri.parse('$baseUrl/reports/order/$orderId/preview'),
+        headers: _headers,
+      );
 
-    if (response.statusCode == 200) {
-      // تم الإرسال بنجاح
-      return true;
-    } else {
-      // فشل الإرسال، يمكنك تسجيل الخطأ أو رمي Exception حسب حاجتك
-      print('Failed to send email: ${response.statusCode} - ${response.body}');
-      return false;
+      print('📨 استجابة معاينة تقرير HTML: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        print('✅ تم الحصول على معاينة تقرير HTML بنجاح');
+        return response.body;
+      } else {
+        String errorMessage = 'فشل في معاينة التقرير';
+        try {
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData['message'] ?? errorMessage;
+          }
+        } catch (e) {
+          errorMessage = 'خطأ في الخادم (${response.statusCode})';
+        }
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      throw Exception('فشل في الاتصال بالخادم');
+    } catch (e) {
+      print('❌ خطأ في معاينة تقرير HTML: $e');
+      throw Exception('فشل في معاينة التقرير: ${e.toString()}');
     }
   }
+
+  // إرسال تقرير HTML عبر البريد الإلكتروني
+  Future<EmailReportResult> sendOrderHtmlReportByEmail(String orderId, String email) async {
+    try {
+      if (orderId.isEmpty) {
+        throw Exception('معرف الطلبية مطلوب');
+      }
+
+      if (email.isEmpty || !_isValidEmail(email)) {
+        throw Exception('البريد الإلكتروني غير صالح');
+      }
+
+      print('📧 طلب إرسال تقرير HTML بالبريد الإلكتروني للطلبية: $orderId إلى $email');
+
+      final requestBody = {
+        'email': email.trim(),
+      };
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/reports/order/$orderId/send-email'),
+        headers: _headers,
+        body: json.encode(requestBody),
+      );
+
+      print('📨 استجابة إرسال تقرير HTML بالبريد: ${response.statusCode}');
+      print('📄 محتوى الاستجابة: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (response.body.isNotEmpty) {
+          final responseData = json.decode(response.body);
+          return EmailReportResult.fromJson(responseData);
+        } else {
+          // إذا كانت الاستجابة فارغة لكن الحالة ناجحة
+          return EmailReportResult(
+            success: true,
+            message: 'تم إرسال التقرير بنجاح',
+            email: email,
+            orderId: orderId,
+            reportType: 'HTML',
+            timestamp: DateTime.now(),
+          );
+        }
+      } else {
+        String errorMessage = 'فشل في إرسال التقرير بالبريد الإلكتروني';
+        try {
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData['message'] ?? errorMessage;
+          }
+        } catch (e) {
+          errorMessage = 'خطأ في الخادم (${response.statusCode})';
+        }
+
+        return EmailReportResult(
+          success: false,
+          message: errorMessage,
+          email: email,
+          orderId: orderId,
+          reportType: 'HTML',
+          timestamp: DateTime.now(),
+          error: errorMessage,
+        );
+      }
+    } on SocketException {
+      return EmailReportResult(
+        success: false,
+        message: 'فشل في الاتصال بالخادم. تحقق من الاتصال بالإنترنت',
+        email: email,
+        orderId: orderId,
+        reportType: 'HTML',
+        timestamp: DateTime.now(),
+        error: 'SocketException',
+      );
+    } catch (e) {
+      print('❌ خطأ في إرسال تقرير HTML بالبريد: $e');
+      return EmailReportResult(
+        success: false,
+        message: 'فشل في إرسال التقرير: ${e.toString()}',
+        email: email,
+        orderId: orderId,
+        reportType: 'HTML',
+        timestamp: DateTime.now(),
+        error: e.toString(),
+      );
+    }
+  }
+
+  // الحصول على تقرير HTML محسّن للطباعة
+  Future<String> getPrintReadyHtmlReport(String orderId) async {
+    try {
+      if (orderId.isEmpty) {
+        throw Exception('معرف الطلبية مطلوب');
+      }
+
+      print('🖨️ طلب تقرير HTML جاهز للطباعة للطلبية: $orderId');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/reports/order/$orderId/print-ready'),
+        headers: _headers,
+      );
+
+      print('📨 استجابة تقرير HTML للطباعة: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        print('✅ تم الحصول على تقرير HTML جاهز للطباعة بنجاح');
+        return response.body;
+      } else {
+        String errorMessage = 'فشل في الحصول على التقرير الجاهز للطباعة';
+        try {
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData['message'] ?? errorMessage;
+          }
+        } catch (e) {
+          errorMessage = 'خطأ في الخادم (${response.statusCode})';
+        }
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      throw Exception('فشل في الاتصال بالخادم');
+    } catch (e) {
+      print('❌ خطأ في الحصول على تقرير HTML للطباعة: $e');
+      throw Exception('فشل في الحصول على التقرير: ${e.toString()}');
+    }
+  }
+
+  // الحصول على تقرير HTML محسّن للموبايل
+  Future<String> getMobileFriendlyHtmlReport(String orderId) async {
+    try {
+      if (orderId.isEmpty) {
+        throw Exception('معرف الطلبية مطلوب');
+      }
+
+      print('📱 طلب تقرير HTML متوافق مع الموبايل للطلبية: $orderId');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/reports/order/$orderId/mobile-friendly'),
+        headers: _headers,
+      );
+
+      print('📨 استجابة تقرير HTML للموبايل: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        print('✅ تم الحصول على تقرير HTML متوافق مع الموبايل بنجاح');
+        return response.body;
+      } else {
+        String errorMessage = 'فشل في الحصول على التقرير المتوافق مع الموبايل';
+        try {
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData['message'] ?? errorMessage;
+          }
+        } catch (e) {
+          errorMessage = 'خطأ في الخادم (${response.statusCode})';
+        }
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      throw Exception('فشل في الاتصال بالخادم');
+    } catch (e) {
+      print('❌ خطأ في الحصول على تقرير HTML للموبايل: $e');
+      throw Exception('فشل في الحصول على التقرير: ${e.toString()}');
+    }
+  }
+
+  // دالة مساعدة للتحقق من صحة البريد الإلكتروني
+  bool _isValidEmail(String email) {
+    // final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    // return emailRegex.test(email.trim());
+    return true ;
+  }
+
 }
 
+
+class EmailReportResult {
+  final bool success;
+  final String message;
+  final String email;
+  final String orderId;
+  final String reportType;
+  final DateTime timestamp;
+  final String? error;
+
+  EmailReportResult({
+    required this.success,
+    required this.message,
+    required this.email,
+    required this.orderId,
+    required this.reportType,
+    required this.timestamp,
+    this.error,
+  });
+
+  factory EmailReportResult.fromJson(Map<String, dynamic> json) {
+    return EmailReportResult(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      email: json['email'] ?? '',
+      orderId: json['orderId'] ?? '',
+      reportType: json['reportType'] ?? 'HTML',
+      timestamp: json['timestamp'] != null
+          ? DateTime.parse(json['timestamp'])
+          : DateTime.now(),
+      error: json['error'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      'email': email,
+      'orderId': orderId,
+      'reportType': reportType,
+      'timestamp': timestamp.toIso8601String(),
+      if (error != null) 'error': error,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'EmailReportResult(success: $success, message: $message, email: $email)';
+  }
+}
 
 
 // نموذج لنتائج رفع الصور المتعددة

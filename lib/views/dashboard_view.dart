@@ -1,15 +1,17 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:open_file/open_file.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/order_controller.dart';
 import '../models/new_order.dart';
-import '../routes/app_pages.dart';
 import '../services/order_service.dart';
+import '../utils/AppColors.dart';
 import '../widgets/LanguageSwitcher.dart';
 
 class DashboardView extends StatelessWidget {
@@ -19,7 +21,7 @@ class DashboardView extends StatelessWidget {
     final AuthController authController = Get.find<AuthController>();
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.lightGray, // استخدام اللون الرسمي للخلفية
       appBar: _buildAppBar(authController, orderController),
       body: CustomScrollView(
         slivers: [
@@ -58,38 +60,36 @@ class DashboardView extends StatelessWidget {
   PreferredSizeWidget _buildAppBar(AuthController authController, NewOrderController orderController) {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.blue.shade700,
+      backgroundColor: AppColors.primaryBlue, // اللون الأزرق الصناعي الرسمي
       title: Obx(() => Row(
         children: [
           Container(
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.whiteText.withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.dashboard_rounded,
-              color: Colors.white,
+              color: AppColors.whiteText,
               size: 20,
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 '${'welcome'.tr} ${authController.currentUserName}',
-                style: TextStyle(
-                  color: Colors.white,
+                style: AppColors.buttonTextStyle.copyWith(
+                  color: AppColors.whiteText,
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
               Text(
                 'dashboard'.tr,
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
+                style: AppColors.captionStyle.copyWith(
+                  color: AppColors.whiteText.withOpacity(0.8),
                 ),
               ),
             ],
@@ -100,25 +100,14 @@ class DashboardView extends StatelessWidget {
         // زر تغيير اللغة
         LanguageSwitcher(),
 
-        // IconButton(
-        //   icon: Container(
-        //     padding: EdgeInsets.all(6),
-        //     decoration: BoxDecoration(
-        //       color: Colors.white.withOpacity(0.15),
-        //       borderRadius: BorderRadius.circular(8),
-        //     ),
-        //     child: Icon(Icons.refresh, color: Colors.white, size: 18),
-        //   ),
-        //   onPressed: () => orderController.refreshOrders(),
-        // ),
         PopupMenuButton<String>(
           icon: Container(
-            padding: EdgeInsets.all(6),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: AppColors.whiteText.withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(Icons.more_vert, color: Colors.white, size: 18),
+            child: const Icon(Icons.more_vert, color: AppColors.whiteText, size: 18),
           ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           onSelected: (value) {
@@ -129,34 +118,30 @@ class DashboardView extends StatelessWidget {
               value: 'logout',
               child: Row(
                 children: [
-                  Icon(Icons.logout_rounded, color: Colors.red.shade600, size: 18),
-                  SizedBox(width: 8),
-                  Text('logout'.tr, style: TextStyle(fontSize: 14)),
+                  Icon(Icons.logout_rounded, color: AppColors.errorRed, size: 18),
+                  const SizedBox(width: 8),
+                  Text('logout'.tr, style: AppColors.bodyStyle),
                 ],
               ),
             ),
           ],
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
       ],
     );
   }
 
   Widget _buildHeaderSection(NewOrderController controller) {
     return Container(
-      margin: EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'quick_stats'.tr,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
+            style: AppColors.subHeadingStyle,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           _buildCompactStatsGrid(controller),
         ],
       ),
@@ -170,36 +155,36 @@ class DashboardView extends StatelessWidget {
           'title': 'total'.tr,
           'value': '${controller.totalOrders}',
           'icon': Icons.assignment_outlined,
-          'color': Colors.blue.shade600,
-          'bgColor': Colors.blue.shade50,
+          'color': AppColors.mediumGray,
+          'bgColor': AppColors.lightGray,
         },
         {
           'title': 'pending'.tr,
           'value': '${controller.pendingOrders}',
           'icon': Icons.schedule_outlined,
-          'color': Colors.orange.shade600,
-          'bgColor': Colors.orange.shade50,
+          'color': AppColors.pendingOrange,
+          'bgColor': AppColors.lightOrangeBg,
         },
         {
           'title': 'in_progress'.tr,
           'value': '${controller.inProgressOrders}',
           'icon': Icons.directions_car_outlined,
-          'color': Colors.purple.shade600,
-          'bgColor': Colors.purple.shade50,
+          'color': AppColors.progressBlue,
+          'bgColor': AppColors.lightBlueBg,
         },
         {
           'title': 'completed'.tr,
           'value': '${controller.completedOrders}',
           'icon': Icons.check_circle_outline,
-          'color': Colors.green.shade600,
-          'bgColor': Colors.green.shade50,
+          'color': AppColors.successGreen,
+          'bgColor': AppColors.lightGreenBg,
         },
       ];
 
       return GridView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 2.0,
           crossAxisSpacing: 12,
@@ -222,30 +207,19 @@ class DashboardView extends StatelessWidget {
 
   Widget _buildCompactStatCard(String title, String value, IconData icon, Color color, Color bgColor) {
     return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: AppColors.cardDecoration,
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, size: 20, color: color),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,18 +227,15 @@ class DashboardView extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  style: TextStyle(
+                  style: AppColors.subHeadingStyle.copyWith(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
                     color: color,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
+                  style: AppColors.captionStyle.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
@@ -280,47 +251,38 @@ class DashboardView extends StatelessWidget {
 
   Widget _buildSearchSection(NewOrderController controller) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'search_and_filter'.tr,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
+            style: AppColors.subHeadingStyle,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
 
           // Search Bar
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
+            decoration: AppColors.cardDecoration,
             child: TextField(
               onChanged: controller.updateSearchQuery,
               decoration: InputDecoration(
                 hintText: 'search_orders'.tr,
-                hintStyle: TextStyle(color: Colors.grey.shade500, fontSize: 14),
-                prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade500, size: 20),
+                hintStyle: AppColors.captionStyle.copyWith(
+                  color: AppColors.lightGrayText,
+                ),
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  color: AppColors.lightGrayText,
+                  size: 20,
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
             ),
           ),
 
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
 
           // Filter Chips - Horizontal Scroll
           SingleChildScrollView(
@@ -334,7 +296,7 @@ class DashboardView extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -344,25 +306,25 @@ class DashboardView extends StatelessWidget {
     return Obx(() {
       final isSelected = controller.statusFilter == value;
       return Container(
-        margin: EdgeInsets.only(left: 8),
+        margin: const EdgeInsets.only(left: 8),
         child: FilterChip(
           label: Text(
             label,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.grey.shade700,
+            style: AppColors.captionStyle.copyWith(
+              color: isSelected ? AppColors.whiteText : AppColors.mediumGray,
               fontWeight: FontWeight.w500,
               fontSize: 13,
             ),
           ),
           selected: isSelected,
           onSelected: (_) => controller.updateStatusFilter(value),
-          backgroundColor: Colors.white,
-          selectedColor: Colors.blue.shade600,
-          checkmarkColor: Colors.white,
+          backgroundColor: AppColors.pureWhite,
+          selectedColor: AppColors.primaryBlue,
+          checkmarkColor: AppColors.whiteText,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
-              color: isSelected ? Colors.blue.shade600 : Colors.grey.shade300,
+              color: isSelected ? AppColors.primaryBlue : AppColors.borderGray,
             ),
           ),
           elevation: isSelected ? 2 : 0,
@@ -381,12 +343,12 @@ class DashboardView extends StatelessWidget {
           children: [
             CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'loading_orders'.tr,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              style: AppColors.bodyStyle,
             ),
           ],
         ),
@@ -396,39 +358,32 @@ class DashboardView extends StatelessWidget {
 
   Widget _buildEmptyState() {
     return Container(
-      padding: EdgeInsets.all(32),
+      padding: const EdgeInsets.all(32),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: AppColors.lightGray,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
                 Icons.assignment_outlined,
                 size: 48,
-                color: Colors.grey.shade400,
+                color: AppColors.lightGrayText,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               'no_orders'.tr,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
-              ),
+              style: AppColors.subHeadingStyle,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'create_first_order'.tr,
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 14,
-              ),
+              style: AppColors.bodyStyle,
               textAlign: TextAlign.center,
             ),
           ],
@@ -439,29 +394,25 @@ class DashboardView extends StatelessWidget {
 
   Widget _buildOrdersList(List<NewOrder> orders, NewOrderController controller) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'order_list'.tr,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
-            ),
+            style: AppColors.subHeadingStyle,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           ListView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
               return _buildSimpleOrderCard(order, controller);
             },
           ),
-          SizedBox(height: 100), // Space for FAB
+          const SizedBox(height: 100), // Space for FAB
         ],
       ),
     );
@@ -469,88 +420,73 @@ class DashboardView extends StatelessWidget {
 
   Widget _buildSimpleOrderCard(NewOrder order, NewOrderController controller) {
     final completionPercentage = controller.getOrderCompletionPercentage(order.id);
+    final statusColor = AppColors.getStatusColor(order.status);
+    final statusBgColor = AppColors.getStatusBackgroundColor(order.status);
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: AppColors.cardDecoration,
       child: InkWell(
         onTap: () => _viewOrder(order),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Row
-              // Header Row
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(order.status).withOpacity(0.1),
+                      color: statusBgColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       _getServiceIcon(order.serviceType),
-                      color: _getStatusColor(order.status),
+                      color: statusColor,
                       size: 18,
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           order.client,
-                          style: TextStyle(
+                          style: AppColors.bodyStyle.copyWith(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Colors.black87,
+                            color: AppColors.darkGray,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Row(
                           children: [
                             // رقم اللوحة
                             Text(
                               order.licensePlateNumber,
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 13,
-                              ),
+                              style: AppColors.captionStyle,
                             ),
                             // فاصل
                             Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 6),
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
                               child: Text(
                                 '•',
-                                style: TextStyle(
-                                  color: Colors.grey.shade400,
-                                  fontSize: 13,
+                                style: AppColors.captionStyle.copyWith(
+                                  color: AppColors.lightGrayText,
                                 ),
                               ),
                             ),
                             // نوع الخدمة
                             Text(
                               _getServiceTypeName(order.serviceType),
-                              style: TextStyle(
-                                color: Colors.blue.shade600,
-                                fontSize: 13,
+                              style: AppColors.captionStyle.copyWith(
+                                color: AppColors.primaryBlue,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -560,15 +496,15 @@ class DashboardView extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(order.status),
+                      color: statusColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       controller.getStatusText(order.status),
-                      style: TextStyle(
-                        color: Colors.white,
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.whiteText,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -577,7 +513,7 @@ class DashboardView extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
 
               // Progress Bar
               Row(
@@ -587,57 +523,50 @@ class DashboardView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
                         value: completionPercentage,
-                        backgroundColor: Colors.grey.shade200,
+                        backgroundColor: AppColors.borderGray,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          completionPercentage == 1.0 ? Colors.green : Colors.blue.shade600,
+                          completionPercentage == 1.0 ? AppColors.successGreen : AppColors.primaryBlue,
                         ),
                         minHeight: 4,
                       ),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     '${(completionPercentage * 100).toInt()}%',
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: AppColors.captionStyle.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: completionPercentage == 1.0 ? Colors.green : Colors.blue.shade600,
+                      color: completionPercentage == 1.0 ? AppColors.successGreen : AppColors.primaryBlue,
                     ),
                   ),
                 ],
               ),
 
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
 
               // Location Info
               Row(
                 children: [
-                  Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade500),
-                  SizedBox(width: 4),
+                  Icon(Icons.location_on_outlined, size: 14, color: AppColors.lightGrayText),
+                  const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       '${order.pickupAddress.city} → ${order.deliveryAddress.city}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: AppColors.captionStyle,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.access_time_rounded, size: 14, color: Colors.grey.shade500),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 8),
+                  Icon(Icons.access_time_rounded, size: 14, color: AppColors.lightGrayText),
+                  const SizedBox(width: 4),
                   Text(
                     _formatDate(order.createdAt),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: AppColors.captionStyle,
                   ),
                 ],
               ),
 
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
 
               // استخدام الأزرار الذكية حسب حالة الطلب
               _buildSmartActionButtons(order, controller),
@@ -665,64 +594,70 @@ class DashboardView extends StatelessWidget {
     }
   }
 
-// دالة جديدة للأزرار الذكية حسب حالة الطلب
+  // دالة جديدة للأزرار الذكية حسب حالة الطلب
   Widget _buildSmartActionButtons(NewOrder order, NewOrderController controller) {
     final status = order.status.toLowerCase();
 
     if (status == 'pending') {
-      // للطلبيات المعلقة: عرض + بدء + حذف + ارسال بريد
+      // للطلبيات المعلقة: عرض + بدء + حذف
       return Row(
         children: [
           // View Button
           Expanded(
             child: OutlinedButton(
               onPressed: () => _viewOrder(order),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: Colors.grey.shade300),
+              style: AppColors.secondaryButtonStyle.copyWith(
+                padding: MaterialStateProperty.all(
+                  const EdgeInsets.symmetric(vertical: 10),
+                ),
               ),
-              child: Text('view'.tr, style: TextStyle(fontSize: 12)),
+              child: Text('view'.tr, style: AppColors.captionStyle),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
 
           // Start Button
           Expanded(
             child: ElevatedButton(
               onPressed: () => _startOrder(order, controller),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade600,
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              style: AppColors.primaryButtonStyle.copyWith(
+                padding: MaterialStateProperty.all(
+                  const EdgeInsets.symmetric(vertical: 10),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.play_arrow, size: 14, color: Colors.white),
-                  SizedBox(width: 4),
-                  Text('start'.tr, style: TextStyle(fontSize: 12, color: Colors.white)),
+                  const Icon(Icons.play_arrow, size: 14, color: AppColors.whiteText),
+                  const SizedBox(width: 4),
+                  Text('start'.tr, style: AppColors.captionStyle.copyWith(
+                    color: AppColors.whiteText,
+                    fontWeight: FontWeight.w600,
+                  )),
                 ],
               ),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
 
           // Delete Button
           Expanded(
             child: OutlinedButton(
               onPressed: () => controller.confirmDeleteOrder(order, controller),
               style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: Colors.red.shade300),
+                side: BorderSide(color: AppColors.errorRed.withOpacity(0.5)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.delete, size: 14, color: Colors.red.shade600),
-                  SizedBox(width: 4),
-                  Text('delete'.tr, style: TextStyle(fontSize: 12, color: Colors.red.shade600)),
+                  const Icon(Icons.delete, size: 14, color: AppColors.errorRed),
+                  const SizedBox(width: 4),
+                  Text('delete'.tr, style: AppColors.captionStyle.copyWith(
+                    color: AppColors.errorRed,
+                    fontWeight: FontWeight.w600,
+                  )),
                 ],
               ),
             ),
@@ -731,25 +666,21 @@ class DashboardView extends StatelessWidget {
       );
     }
     else if (status == 'in_progress') {
-      // للطلبيات قيد التنفيذ: أزرار مع إرسال بريد
+      // للطلبيات قيد التنفيذ
       if (!order.hasImages) {
         return Row(
           children: [
-
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _viewOrder(order),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  side: BorderSide(color: Colors.grey.shade300),
+                style: AppColors.secondaryButtonStyle.copyWith(
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(vertical: 10),
+                  ),
                 ),
-                child: Text('view'.tr, style: TextStyle(fontSize: 12)),
+                child: Text('view'.tr, style: AppColors.captionStyle),
               ),
             ),
-
-
           ],
         );
       }
@@ -759,99 +690,139 @@ class DashboardView extends StatelessWidget {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _viewOrder(order),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  side: BorderSide(color: Colors.grey.shade300),
+                style: AppColors.secondaryButtonStyle.copyWith(
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(vertical: 10),
+                  ),
                 ),
-                child: Text('view'.tr, style: TextStyle(fontSize: 12)),
+                child: Text('view'.tr, style: AppColors.captionStyle),
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Expanded(
               flex: 2,
               child: ElevatedButton(
                 onPressed: () => _completeOrder(order, controller),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade600,
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                style: AppColors.successButtonStyle.copyWith(
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(vertical: 10),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle, size: 14, color: Colors.white),
-                    SizedBox(width: 6),
-                    Text('complete_order'.tr, style: TextStyle(fontSize: 12, color: Colors.white)),
+                    const Icon(Icons.check_circle, size: 14, color: AppColors.whiteText),
+                    const SizedBox(width: 6),
+                    Text('complete_order'.tr, style: AppColors.captionStyle.copyWith(
+                      color: AppColors.whiteText,
+                      fontWeight: FontWeight.w600,
+                    )),
                   ],
                 ),
               ),
             ),
-
           ],
         );
       }
     }
     else if (status == 'completed') {
-      // للطلبيات المكتملة: عرض التفاصيل + تقرير + ارسال بريد
-      return Row(
+      // للطلبيات المكتملة: عرض + تقرير HTML + إرسال بريد
+      return Column(
         children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _viewOrder(order),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: Colors.green.shade300),
+          // الصف الأول: عرض التفاصيل + تقرير HTML
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _viewOrder(order),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    side: BorderSide(color: AppColors.successGreen.withOpacity(0.5)),
+                  ),
+                  child: Text('view'.tr, style: AppColors.captionStyle.copyWith(
+                    color: AppColors.successGreen,
+                    fontWeight: FontWeight.w600,
+                  )),
+                ),
               ),
-              child: Text('view'.tr, style: TextStyle(fontSize: 12, color: Colors.green.shade600)),
-
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: () => _generateHtmlReport(order),
+                  style: AppColors.successButtonStyle.copyWith(
+                    padding: MaterialStateProperty.all(
+                      const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.description, size: 14, color: AppColors.whiteText),
+                      const SizedBox(width: 6),
+                      Text('html_report'.tr, style: AppColors.captionStyle.copyWith(
+                        color: AppColors.whiteText,
+                        fontWeight: FontWeight.w600,
+                      )),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: 8),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _generateReport(order),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          const SizedBox(height: 8),
+          // الصف الثاني: إرسال بريد إلكتروني + معاينة
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _sendEmailReport(order, controller),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    side: BorderSide(color: AppColors.progressBlue.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.email, size: 14, color: AppColors.progressBlue),
+                      const SizedBox(width: 4),
+                      Text('send_email'.tr, style: AppColors.captionStyle.copyWith(
+                        color: AppColors.progressBlue,
+                        fontWeight: FontWeight.w600,
+                      )),
+                    ],
+                  ),
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long, size: 14, color: Colors.white),
-                  SizedBox(width: 6),
-                  Text('report'.tr, style: TextStyle(fontSize: 12, color: Colors.white)),
-                ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _previewHtmlReport(order),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    side: BorderSide(color: AppColors.mediumGray.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.preview, size: 14, color: AppColors.mediumGray),
+                      const SizedBox(width: 4),
+                      Text('preview'.tr, style: AppColors.captionStyle.copyWith(
+                        color: AppColors.mediumGray,
+                        fontWeight: FontWeight.w600,
+                      )),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(width: 8),
-
-          // Send Email Button
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => controller.sendEmailReport(order),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: Colors.teal.shade300),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.email, size: 14, color: Colors.teal.shade600),
-                  SizedBox(width: 4),
-                  Text('email'.tr, style: TextStyle(fontSize: 12, color: Colors.teal.shade600)),
-                ],
-              ),
-            ),
+            ],
           ),
         ],
       );
     }
-
     else if (status == 'cancelled') {
       // للطلبيات الملغية
       return Row(
@@ -859,53 +830,476 @@ class DashboardView extends StatelessWidget {
           Expanded(
             child: OutlinedButton(
               onPressed: () => _viewOrder(order),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                side: BorderSide(color: Colors.grey.shade300),
+              style: AppColors.secondaryButtonStyle.copyWith(
+                padding: MaterialStateProperty.all(
+                  const EdgeInsets.symmetric(vertical: 10),
+                ),
               ),
-              child: Text('عرض التفاصيل', style: TextStyle(fontSize: 12)),
+              child: Text('view_details'.tr, style: AppColors.captionStyle),
             ),
           ),
         ],
       );
     }
     else {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
-// دالة محسنة لإنتاج التقرير
+  // دالة محسنة لإنتاج التقرير
   Future<void> _generateReport(NewOrder order) async {
+    // توجيه إلى الدالة الجديدة
+    await _generateHtmlReport(order);
+  }
+
+  Future<void> _retryGenerateReport(NewOrder order) async {
+    await _generateReport(order);
+  }
+
+  // توليد تقرير HTML
+  Future<void> _generateHtmlReport(NewOrder order) async {
     try {
-      // عرض مؤشر تحميل
+      // عرض مؤشر تحميل مع تفاصيل أكثر
       Get.dialog(
         Center(
-          child: CircularProgressIndicator(),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightGreenBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.description,
+                    color: AppColors.successGreen,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'generating_html_report'.tr,
+                  style: AppColors.bodyStyle.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkGray,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'creating_interactive_report'.tr,
+                  style: AppColors.captionStyle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: 200,
+                  child: LinearProgressIndicator(
+                    backgroundColor: AppColors.borderGray,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.successGreen),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         barrierDismissible: false,
       );
 
-      // إنشاء التقرير
-      final pdfBytes = await NewOrderService().generateOrderPdf(order.id!);
+      // إنشاء التقرير HTML
+      final htmlContent = await NewOrderService().generateOrderHtmlReport(order.id!);
 
       // إغلاق مؤشر التحميل
       Get.back();
 
-      // حفظ وعرض الملف
-      await _saveAndOpenPdf(pdfBytes, order);
+      // حفظ وعرض الملف HTML
+      await _saveAndOpenHtmlReport(htmlContent, order);
 
     } catch (e) {
       Get.back(); // إغلاق مؤشر التحميل في حالة الخطأ
-      Get.snackbar(
-        'خطأ في إنشاء التقرير',
-        e.toString(),
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        duration: Duration(seconds: 5),
-        icon: Icon(Icons.error, color: Colors.white),
+
+      // عرض رسالة خطأ محسنة
+      Get.dialog(
+        AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.error_outline, color: AppColors.errorRed, size: 24),
+              const SizedBox(width: 8),
+              Text('html_report_failed'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'html_report_error_message'.tr,
+                style: AppColors.bodyStyle.copyWith(height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightRedBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.errorRed.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'error_details'.tr,
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.errorRed,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      e.toString(),
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.errorRed,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('ok'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Get.back();
+                _generateHtmlReport(order);
+              },
+              style: AppColors.successButtonStyle,
+              child: Text('retry'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
+            ),
+          ],
+        ),
       );
+    }
+  }
+
+// دالة محسنة لحفظ وفتح تقرير HTML
+  Future<void> _saveAndOpenHtmlReport(String htmlContent, NewOrder order) async {
+    try {
+      // الحصول على مسار التخزين المؤقت
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'Fahrzeuguebergabe_${order.orderNumber ?? order.id}_$timestamp.html';
+      final filePath = '${directory.path}/$fileName';
+
+      // حفظ الملف
+      final file = File(filePath);
+      await file.writeAsString(htmlContent, encoding: utf8);
+
+      // فتح الملف
+      final result = await OpenFilex.open(filePath);
+
+      if (result.type == ResultType.done) {
+        // عرض رسالة نجاح محسنة
+        Get.snackbar(
+          '📄 ${'html_report_generated'.tr}',
+          'html_report_saved_successfully'.tr,
+          backgroundColor: AppColors.successGreen,
+          colorText: AppColors.whiteText,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 5),
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          icon: const Icon(Icons.description, color: AppColors.whiteText),
+          mainButton: TextButton(
+            onPressed: () {
+              Get.closeCurrentSnackbar();
+              _showReportOptionsDialog(filePath, order);
+            },
+            child: Text('options'.tr, style: AppColors.buttonTextStyle.copyWith(
+              color: AppColors.whiteText,
+              fontWeight: FontWeight.bold,
+            )),
+          ),
+        );
+      } else {
+        throw Exception('failed_to_open_html_file'.tr);
+      }
+
+    } catch (e) {
+      throw Exception('failed_to_save_html_file'.tr.replaceAll('error', e.toString()));
+    }
+  }
+
+// عرض خيارات التقرير
+  Future<void> _showReportOptionsDialog(String filePath, NewOrder order) async {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.description, color: AppColors.successGreen, size: 24),
+            const SizedBox(width: 8),
+            Text('report_options'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'report_generated_successfully_options'.tr,
+              style: AppColors.bodyStyle.copyWith(height: 1.4),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+
+            // خيار المشاركة
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.lightBlueBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.share, color: AppColors.progressBlue, size: 20),
+              ),
+              title: Text('share_report'.tr, style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500)),
+              subtitle: Text('share_with_other_apps'.tr, style: AppColors.captionStyle),
+              onTap: () {
+                Get.back();
+                _shareHtmlReport(filePath);
+              },
+            ),
+
+            const Divider(height: 1, color: AppColors.borderGray),
+
+            // خيار إرسال بالبريد الإلكتروني
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGreenBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.email, color: AppColors.successGreen, size: 20),
+              ),
+              title: Text('send_by_email'.tr, style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500)),
+              subtitle: Text('send_to_client_email'.tr, style: AppColors.captionStyle),
+              onTap: () {
+                Get.back();
+                _sendEmailReportFromDialog(order);
+              },
+            ),
+
+            const Divider(height: 1, color: AppColors.borderGray),
+
+            // خيار نسخ المسار
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGray,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.copy, color: AppColors.mediumGray, size: 20),
+              ),
+              title: Text('copy_file_path'.tr, style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500)),
+              subtitle: Text('copy_path_to_clipboard'.tr, style: AppColors.captionStyle),
+              onTap: () {
+                Get.back();
+                _copyFilePathToClipboard(filePath);
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('close'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendEmailReportFromDialog(NewOrder order) async {
+    await _sendEmailReport(order, Get.find<NewOrderController>());
+  }
+
+// مشاركة تقرير HTML
+  Future<void> _shareHtmlReport(String filePath) async {
+    try {
+      // يمكنك استخدام مكتبة share_plus لمشاركة الملف
+      // await Share.shareXFiles([XFile(filePath)], text: 'Fahrzeugübergabe Bericht');
+
+      // أو نسخ المسار إلى الحافظة كحل بديل
+      await Clipboard.setData(ClipboardData(text: filePath));
+      Get.snackbar(
+        '📋 ${'file_path_copied'.tr}',
+        'file_path_copied_successfully'.tr,
+        backgroundColor: AppColors.progressBlue,
+        colorText: AppColors.whiteText,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.copy, color: AppColors.whiteText),
+      );
+    } catch (e) {
+      print('❌ خطأ في مشاركة الملف: $e');
+      Get.snackbar(
+        'share_error'.tr,
+        'failed_to_share_file'.tr,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+// نسخ مسار الملف إلى الحافظة
+  Future<void> _copyFilePathToClipboard(String filePath) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: filePath));
+      Get.snackbar(
+        '📋 ${'path_copied'.tr}',
+        'file_path_copied_to_clipboard'.tr,
+        backgroundColor: AppColors.mediumGray,
+        colorText: AppColors.whiteText,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.copy_all, color: AppColors.whiteText),
+      );
+    } catch (e) {
+      print('❌ خطأ في نسخ المسار: $e');
+    }
+  }
+
+// إرسال التقرير بالبريد الإلكتروني من الـ dialog
+  Future<void> _sendEmailReport(NewOrder order, NewOrderController controller) async {
+    await controller.sendEmailReport(order);
+  }
+
+// معاينة تقرير HTML
+  Future<void> _previewHtmlReport(NewOrder order) async {
+    try {
+      // عرض مؤشر تحميل للمعاينة
+      Get.dialog(
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightGray,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.preview,
+                    color: AppColors.mediumGray,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'loading_preview'.tr,
+                  style: AppColors.bodyStyle.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.darkGray,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'preparing_report_preview'.tr,
+                  style: AppColors.captionStyle,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: 200,
+                  child: LinearProgressIndicator(
+                    backgroundColor: AppColors.borderGray,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.mediumGray),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      );
+
+      // الحصول على معاينة التقرير
+      final htmlContent = await NewOrderService().previewOrderHtmlReport(order.id!);
+
+      // إغلاق مؤشر التحميل
+      Get.back();
+
+      // حفظ وعرض المعاينة
+      await _displayHtmlPreview(htmlContent, order);
+
+    } catch (e) {
+      Get.back(); // إغلاق مؤشر التحميل في حالة الخطأ
+
+      Get.snackbar(
+        '❌ ${'preview_failed'.tr}',
+        'failed_to_load_preview'.tr.replaceAll('error', e.toString()),
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 4),
+        icon: const Icon(Icons.error_outline, color: AppColors.whiteText),
+      );
+    }
+  }
+
+// عرض معاينة HTML
+  Future<void> _displayHtmlPreview(String htmlContent, NewOrder order) async {
+    try {
+      // حفظ الملف للمعاينة
+      final directory = await getTemporaryDirectory();
+      final fileName = 'Preview_${order.orderNumber ?? order.id}_${DateTime.now().millisecondsSinceEpoch}.html';
+      final filePath = '${directory.path}/$fileName';
+
+      final file = File(filePath);
+      await file.writeAsString(htmlContent, encoding: utf8);
+
+      // فتح للمعاينة
+      final result = await OpenFilex.open(filePath);
+
+      if (result.type == ResultType.done) {
+        Get.snackbar(
+          '👁️ ${'preview_opened'.tr}',
+          'report_preview_ready'.tr,
+          backgroundColor: AppColors.mediumGray,
+          colorText: AppColors.whiteText,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 3),
+          icon: const Icon(Icons.preview, color: AppColors.whiteText),
+        );
+      } else {
+        throw Exception('failed_to_open_preview'.tr);
+      }
+
+    } catch (e) {
+      throw Exception('failed_to_display_preview'.tr.replaceAll('error', e.toString()));
     }
   }
 
@@ -921,17 +1315,17 @@ class DashboardView extends StatelessWidget {
       await file.writeAsBytes(pdfBytes);
 
       // فتح الملف
-      await OpenFile.open(filePath);
+      OpenFilex.open(filePath);
 
       // عرض رسالة نجاح
       Get.snackbar(
         'تم إنشاء التقرير',
         'تم حفظ التقرير بنجاح وجاهز للمشاركة',
-        backgroundColor: Colors.green.shade600,
-        colorText: Colors.white,
+        backgroundColor: AppColors.successGreen,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
-        duration: Duration(seconds: 3),
-        icon: Icon(Icons.check_circle, color: Colors.white),
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.check_circle, color: AppColors.whiteText),
       );
 
     } catch (e) {
@@ -947,12 +1341,12 @@ class DashboardView extends StatelessWidget {
       Expanded(
         child: OutlinedButton(
           onPressed: () => _viewOrder(order),
-          style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: 8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            side: BorderSide(color: Colors.grey.shade300),
+          style: AppColors.secondaryButtonStyle.copyWith(
+            padding: MaterialStateProperty.all(
+              const EdgeInsets.symmetric(vertical: 8),
+            ),
           ),
-          child: Text('عرض', style: TextStyle(fontSize: 12)),
+          child: Text('عرض', style: AppColors.captionStyle),
         ),
       ),
     );
@@ -962,22 +1356,22 @@ class DashboardView extends StatelessWidget {
 
     if (status == 'pending') {
       // زر بدء التنفيذ
-      actions.add(SizedBox(width: 8));
+      actions.add(const SizedBox(width: 8));
       actions.add(
         Expanded(
           child: ElevatedButton(
             onPressed: () => _startOrder(order, controller),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade600,
-              padding: EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            style: AppColors.primaryButtonStyle.copyWith(
+              padding: MaterialStateProperty.all(
+                const EdgeInsets.symmetric(vertical: 8),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.play_arrow, size: 14, color: Colors.white),
-                SizedBox(width: 4),
-                Text('بدء', style: TextStyle(fontSize: 12, color: Colors.white)),
+                const Icon(Icons.play_arrow, size: 14, color: AppColors.whiteText),
+                const SizedBox(width: 4),
+                Text('بدء', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
               ],
             ),
           ),
@@ -986,44 +1380,44 @@ class DashboardView extends StatelessWidget {
     } else if (status == 'in_progress') {
       // فحص المتطلبات وعرض الزر المناسب
       if (!order.hasImages) {
-        actions.add(SizedBox(width: 8));
+        actions.add(const SizedBox(width: 8));
         actions.add(
           Expanded(
             child: ElevatedButton(
               onPressed: () => _addImages(order),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange.shade600,
-                padding: EdgeInsets.symmetric(vertical: 8),
+                backgroundColor: AppColors.pendingOrange,
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.camera_alt, size: 14, color: Colors.white),
-                  SizedBox(width: 4),
-                  Text('صور', style: TextStyle(fontSize: 12, color: Colors.white)),
+                  const Icon(Icons.camera_alt, size: 14, color: AppColors.whiteText),
+                  const SizedBox(width: 4),
+                  Text('صور', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
                 ],
               ),
             ),
           ),
         );
       } else if (!order.hasAllSignatures) {
-        actions.add(SizedBox(width: 8));
+        actions.add(const SizedBox(width: 8));
         actions.add(
           Expanded(
             child: ElevatedButton(
               onPressed: () => _addSignatures(order),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple.shade600,
-                padding: EdgeInsets.symmetric(vertical: 8),
+                backgroundColor: AppColors.progressBlue,
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.edit, size: 14, color: Colors.white),
-                  SizedBox(width: 4),
-                  Text('توقيع', style: TextStyle(fontSize: 12, color: Colors.white)),
+                  const Icon(Icons.edit, size: 14, color: AppColors.whiteText),
+                  const SizedBox(width: 4),
+                  Text('توقيع', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
                 ],
               ),
             ),
@@ -1031,22 +1425,22 @@ class DashboardView extends StatelessWidget {
         );
       } else {
         // جميع المتطلبات مكتملة - زر الإتمام
-        actions.add(SizedBox(width: 8));
+        actions.add(const SizedBox(width: 8));
         actions.add(
           Expanded(
             child: ElevatedButton(
               onPressed: () => _completeOrder(order, controller),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                padding: EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              style: AppColors.successButtonStyle.copyWith(
+                padding: MaterialStateProperty.all(
+                  const EdgeInsets.symmetric(vertical: 8),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.check_circle, size: 14, color: Colors.white),
-                  SizedBox(width: 4),
-                  Text('إتمام', style: TextStyle(fontSize: 12, color: Colors.white)),
+                  const Icon(Icons.check_circle, size: 14, color: AppColors.whiteText),
+                  const SizedBox(width: 4),
+                  Text('إتمام', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
                 ],
               ),
             ),
@@ -1055,22 +1449,22 @@ class DashboardView extends StatelessWidget {
       }
     } else if (status == 'completed') {
       // زر عرض التقرير أو المشاركة
-      actions.add(SizedBox(width: 8));
+      actions.add(const SizedBox(width: 8));
       actions.add(
         Expanded(
           child: ElevatedButton(
             onPressed: () => _viewCompletedOrder(order),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.shade600,
-              padding: EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            style: AppColors.successButtonStyle.copyWith(
+              padding: MaterialStateProperty.all(
+                const EdgeInsets.symmetric(vertical: 8),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.receipt, size: 14, color: Colors.white),
-                SizedBox(width: 4),
-                Text('تقرير', style: TextStyle(fontSize: 12, color: Colors.white)),
+                const Icon(Icons.receipt, size: 14, color: AppColors.whiteText),
+                const SizedBox(width: 4),
+                Text('تقرير', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
               ],
             ),
           ),
@@ -1081,6 +1475,587 @@ class DashboardView extends StatelessWidget {
     return Row(children: actions);
   }
 
+  // عرض dialog لإدخال البريد الإلكتروني
+  Future<void> _showEmailInputDialog(NewOrder order) async {
+    final TextEditingController emailController = TextEditingController();
+    final RxString emailError = ''.obs;
+
+    await Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.email_outlined, color: AppColors.progressBlue, size: 22),
+            const SizedBox(width: 8),
+            Text('enter_email_address'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'enter_email_to_send_report'.tr,
+              style: AppColors.bodyStyle.copyWith(height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            Obx(() => TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'email_address'.tr,
+                hintText: 'example@company.com',
+                prefixIcon: const Icon(Icons.email_outlined, color: AppColors.mediumGray),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: AppColors.borderGray),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: AppColors.primaryBlue),
+                ),
+                errorText: emailError.value.isEmpty ? null : emailError.value,
+              ),
+              onChanged: (value) {
+                emailError.value = '';
+              },
+            )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
+          ),
+          Obx(() => ElevatedButton(
+            onPressed: emailController.text.trim().isEmpty ? null : () {
+              final email = emailController.text.trim();
+              if (_isValidEmail(email)) {
+                Get.back();
+                _showEmailConfirmationDialog(order, email);
+              } else {
+                emailError.value = 'invalid_email_format'.tr;
+              }
+            },
+            style: AppColors.primaryButtonStyle,
+            child: Text('continue'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
+          )),
+        ],
+      ),
+    );
+  }
+
+  // عرض dialog تأكيد إرسال البريد الإلكتروني
+  Future<void> _showEmailConfirmationDialog(NewOrder order, String email) async {
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.send, color: AppColors.progressBlue, size: 22),
+            const SizedBox(width: 8),
+            Text('confirm_send_email'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'confirm_send_report_email'.tr,
+              style: AppColors.bodyStyle.copyWith(
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.lightBlueBg,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.progressBlue.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.assignment, color: AppColors.progressBlue, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        'order_details'.tr,
+                        style: AppColors.captionStyle.copyWith(
+                          color: AppColors.progressBlue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${'client'.tr}: ${order.client}',
+                    style: AppColors.captionStyle.copyWith(color: AppColors.progressBlue),
+                  ),
+                  Text(
+                    '${'order_number'.tr}: ${order.orderNumber ?? order.id}',
+                    style: AppColors.captionStyle.copyWith(color: AppColors.progressBlue),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.email, color: AppColors.progressBlue, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          email,
+                          style: AppColors.captionStyle.copyWith(
+                            color: AppColors.progressBlue,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.lightGreenBg,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: AppColors.successGreen, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'email_report_info'.tr,
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.successGreen,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: AppColors.primaryButtonStyle,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.send, size: 16, color: AppColors.whiteText),
+                const SizedBox(width: 6),
+                Text('send_email'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _performEmailSend(order, email);
+    }
+  }
+
+  // تنفيذ إرسال البريد الإلكتروني
+  Future<void> _performEmailSend(NewOrder order, String email) async {
+    // عرض مؤشر تحميل للإرسال
+    Get.dialog(
+      WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(color: AppColors.progressBlue),
+                const SizedBox(height: 16),
+                Text(
+                  'sending_email_report'.tr,
+                  style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'please_wait_sending'.tr,
+                  style: AppColors.captionStyle,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  email,
+                  style: AppColors.captionStyle.copyWith(
+                    color: AppColors.progressBlue,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+
+    try {
+      // إرسال التقرير عبر البريد الإلكتروني
+      final result = await NewOrderService().sendOrderHtmlReportByEmail(order.id!, email);
+
+      // إغلاق مؤشر التحميل
+      Get.back();
+
+      // عرض نتيجة الإرسال
+      await _showEmailSendResult(result, order, email);
+
+    } catch (e) {
+      // إغلاق مؤشر التحميل في حالة الخطأ
+      Get.back();
+
+      // عرض رسالة خطأ
+      await _showEmailSendError(e.toString(), order, email);
+    }
+  }
+
+  // عرض نتيجة إرسال البريد الإلكتروني
+  Future<void> _showEmailSendResult(EmailReportResult result, NewOrder order, String email) async {
+    if (result.success) {
+      // نجح الإرسال
+      Get.dialog(
+        AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.check_circle, color: AppColors.successGreen, size: 24),
+              const SizedBox(width: 8),
+              Text('email_sent_successfully'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'email_sent_success_message'.tr,
+                style: AppColors.bodyStyle.copyWith(height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGreenBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.successGreen.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.email, color: AppColors.successGreen, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'sent_to'.tr,
+                          style: AppColors.captionStyle.copyWith(
+                            color: AppColors.successGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.successGreen,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.access_time, color: AppColors.successGreen, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          'sent_at'.tr,
+                          style: AppColors.captionStyle.copyWith(
+                            color: AppColors.successGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatDateTime(result.timestamp),
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.successGreen,
+                      ),
+                    ),
+                    if (result.message.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        result.message,
+                        style: AppColors.captionStyle.copyWith(
+                          color: AppColors.successGreen,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Get.back(),
+              style: AppColors.successButtonStyle,
+              child: Text('great'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
+            ),
+          ],
+        ),
+      );
+
+      // عرض snackbar إضافي
+      Future.delayed(const Duration(milliseconds: 500), () {
+        Get.snackbar(
+          '📧 ${'email_sent'.tr}',
+          'report_sent_to_email'.tr.replaceAll('email', email),
+          backgroundColor: AppColors.successGreen,
+          colorText: AppColors.whiteText,
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 4),
+          margin: const EdgeInsets.all(16),
+          borderRadius: 12,
+          icon: const Icon(Icons.mark_email_read, color: AppColors.whiteText),
+        );
+      });
+
+    } else {
+      // فشل الإرسال
+      Get.dialog(
+        AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.error_outline, color: AppColors.errorRed, size: 24),
+              const SizedBox(width: 8),
+              Text('email_send_failed'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'email_send_failed_message'.tr,
+                style: AppColors.bodyStyle.copyWith(height: 1.4),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightRedBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.errorRed.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'error_details'.tr,
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.errorRed,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      result.message.isNotEmpty ? result.message : 'unknown_error'.tr,
+                      style: AppColors.captionStyle.copyWith(
+                        color: AppColors.errorRed,
+                      ),
+                    ),
+                    if (result.error != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'technical_error'.tr,
+                        style: AppColors.captionStyle.copyWith(
+                          color: AppColors.errorRed,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        result.error!,
+                        style: AppColors.captionStyle.copyWith(
+                          color: AppColors.errorRed,
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('ok'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Get.back();
+                _performEmailSend(order, email); // إعادة المحاولة
+              },
+              style: AppColors.primaryButtonStyle,
+              child: Text('retry'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  // عرض خطأ في إرسال البريد الإلكتروني
+  Future<void> _showEmailSendError(String error, NewOrder order, String email) async {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.errorRed, size: 24),
+            const SizedBox(width: 8),
+            Text('connection_error'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'email_connection_error_message'.tr,
+              style: AppColors.bodyStyle.copyWith(height: 1.4),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.lightYellowBg,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.warningYellow.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'troubleshooting_steps'.tr,
+                    style: AppColors.captionStyle.copyWith(
+                      color: AppColors.warningYellow,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '• ${'check_internet_connection'.tr}',
+                    style: AppColors.captionStyle.copyWith(color: AppColors.warningYellow),
+                  ),
+                  Text(
+                    '• ${'verify_email_address'.tr}',
+                    style: AppColors.captionStyle.copyWith(color: AppColors.warningYellow),
+                  ),
+                  Text(
+                    '• ${'try_again_later'.tr}',
+                    style: AppColors.captionStyle.copyWith(color: AppColors.warningYellow),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            ExpansionTile(
+              title: Text(
+                'technical_details'.tr,
+                style: AppColors.captionStyle.copyWith(color: AppColors.mediumGray),
+              ),
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightGray,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    error,
+                    style: AppColors.captionStyle.copyWith(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      color: AppColors.mediumGray,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              _performEmailSend(order, email); // إعادة المحاولة
+            },
+            style: AppColors.primaryButtonStyle,
+            child: Text('retry'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // دالة مساعدة للتحقق من صحة البريد الإلكتروني
+  bool _isValidEmail(String email) {
+    // final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+);
+    //     return emailRegex.test(email.trim());
+    return true;
+  }
+
+  // دالة مساعدة لتنسيق التاريخ والوقت
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return 'just_now'.tr;
+    } else if (difference.inHours < 1) {
+      return 'minutes_ago'.tr.replaceAll('count', difference.inMinutes.toString());
+    } else if (difference.inDays < 1) {
+      return 'hours_ago'.tr.replaceAll('count', difference.inHours.toString());
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+  }
 
   // دالة بدء تنفيذ الطلب
   Future<void> _startOrder(NewOrder order, NewOrderController controller) async {
@@ -1090,11 +2065,11 @@ class DashboardView extends StatelessWidget {
       Get.snackbar(
         'تنبيه',
         'لا يمكن بدء هذا الطلب - الحالة الحالية: ${controller.getStatusText(currentOrder?.status ?? '')}',
-        backgroundColor: Colors.orange.shade600,
-        colorText: Colors.white,
+        backgroundColor: AppColors.warningYellow,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
-        duration: Duration(seconds: 3),
-        icon: Icon(Icons.warning, color: Colors.white),
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.warning, color: AppColors.whiteText),
       );
       return;
     }
@@ -1105,9 +2080,9 @@ class DashboardView extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.play_arrow, color: Colors.blue.shade600, size: 22),
-            SizedBox(width: 8),
-            Text('start_order'.tr, style: TextStyle(fontSize: 16)),
+            const Icon(Icons.play_arrow, color: AppColors.primaryBlue, size: 22),
+            const SizedBox(width: 8),
+            Text('start_order'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
           ],
         ),
         content: Column(
@@ -1116,20 +2091,23 @@ class DashboardView extends StatelessWidget {
           children: [
             Text(
               'confirm_start_order'.tr.replaceAll('client', order.client),
-              style: TextStyle(fontSize: 14, height: 1.4, fontWeight: FontWeight.w500),
+              style: AppColors.bodyStyle.copyWith(
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.lightBlueBg,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: AppColors.primaryBlue.withOpacity(0.3)),
               ),
               child: Text(
                 'order_will_move_to_progress'.tr,
-                style: TextStyle(
-                  color: Colors.blue.shade700,
+                style: AppColors.bodyStyle.copyWith(
+                  color: AppColors.primaryBlue,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1139,15 +2117,12 @@ class DashboardView extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: Text('cancel'.tr, style: TextStyle(color: Colors.grey.shade600)),
+            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
           ),
           ElevatedButton(
             onPressed: () => Get.back(result: true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade600,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text('start_order'.tr, style: TextStyle(color: Colors.white)),
+            style: AppColors.primaryButtonStyle,
+            child: Text('start_order'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
           ),
         ],
       ),
@@ -1163,17 +2138,17 @@ class DashboardView extends StatelessWidget {
       Get.dialog(
         Center(
           child: Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.pureWhite,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(color: Colors.blue.shade600),
-                SizedBox(height: 16),
-                Text('processing'.tr, style: TextStyle(fontSize: 14)),
+                const CircularProgressIndicator(color: AppColors.primaryBlue),
+                const SizedBox(height: 16),
+                Text('processing'.tr, style: AppColors.bodyStyle),
               ],
             ),
           ),
@@ -1193,20 +2168,20 @@ class DashboardView extends StatelessWidget {
           Get.snackbar(
             'order_started'.tr,
             'order_started_message'.tr.replaceAll('client', order.client),
-            backgroundColor: Colors.blue.shade600,
-            colorText: Colors.white,
+            backgroundColor: AppColors.primaryBlue,
+            colorText: AppColors.whiteText,
             snackPosition: SnackPosition.TOP,
-            duration: Duration(seconds: 3),
-            icon: Icon(Icons.play_arrow, color: Colors.white),
+            duration: const Duration(seconds: 3),
+            icon: const Icon(Icons.play_arrow, color: AppColors.whiteText),
           );
         } else {
           Get.snackbar(
             'error'.tr,
             'operation_failed'.tr,
-            backgroundColor: Colors.red.shade600,
-            colorText: Colors.white,
+            backgroundColor: AppColors.errorRed,
+            colorText: AppColors.whiteText,
             snackPosition: SnackPosition.TOP,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           );
         }
       } catch (e) {
@@ -1218,10 +2193,10 @@ class DashboardView extends StatelessWidget {
         Get.snackbar(
           'error'.tr,
           'order_start_failed'.tr.replaceAll('error', e.toString()),
-          backgroundColor: Colors.red.shade600,
-          colorText: Colors.white,
+          backgroundColor: AppColors.errorRed,
+          colorText: AppColors.whiteText,
           snackPosition: SnackPosition.TOP,
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
         );
       }
     }
@@ -1232,21 +2207,19 @@ class DashboardView extends StatelessWidget {
     _viewOrder(order);
   }
 
-
   Widget _buildFloatingActionButton() {
     return FloatingActionButton.extended(
       heroTag: "dashboard_fab",
       onPressed: _createNewOrder,
-      backgroundColor: Colors.blue.shade600,
+      backgroundColor: AppColors.primaryBlue,
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      icon: Icon(Icons.add_rounded, color: Colors.white, size: 22),
+      icon: const Icon(Icons.add_rounded, color: AppColors.whiteText, size: 22),
       label: Text(
         'new_order'.tr,
-        style: TextStyle(
-          color: Colors.white,
+        style: AppColors.buttonTextStyle.copyWith(
+          color: AppColors.whiteText,
           fontWeight: FontWeight.bold,
-          fontSize: 14,
         ),
       ),
     );
@@ -1269,18 +2242,7 @@ class DashboardView extends StatelessWidget {
   }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return Colors.orange.shade600;
-      case 'in_progress':
-        return Colors.purple.shade600;
-      case 'completed':
-        return Colors.green.shade600;
-      case 'cancelled':
-        return Colors.red.shade600;
-      default:
-        return Colors.grey.shade600;
-    }
+    return AppColors.getStatusColor(status);
   }
 
   String _formatDate(DateTime date) {
@@ -1301,7 +2263,7 @@ class DashboardView extends StatelessWidget {
       // إغلاق أي snackbar مفتوح أولاً
       if (Get.isSnackbarOpen) {
         Get.closeCurrentSnackbar();
-        await Future.delayed(Duration(milliseconds: 300)); // انتظار قصير
+        await Future.delayed(const Duration(milliseconds: 300)); // انتظار قصير
       }
 
       // فحص المتطلبات أولاً
@@ -1326,30 +2288,30 @@ class DashboardView extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, color: Colors.orange.shade600, size: 22),
-                SizedBox(width: 8),
-                Text('missing_requirements'.tr, style: TextStyle(fontSize: 16)),
+                const Icon(Icons.warning_amber_rounded, color: AppColors.warningYellow, size: 22),
+                const SizedBox(width: 8),
+                Text('missing_requirements'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
               ],
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('complete_order_missing_requirements'.tr, style: TextStyle(fontSize: 14, height: 1.4)),
-                SizedBox(height: 12),
+                Text('complete_order_missing_requirements'.tr, style: AppColors.bodyStyle.copyWith(height: 1.4)),
+                const SizedBox(height: 12),
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: AppColors.lightYellowBg,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.shade200),
+                    border: Border.all(color: AppColors.warningYellow.withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: missingRequirements.map((req) =>
                         Padding(
-                          padding: EdgeInsets.symmetric(vertical: 2),
-                          child: Text(req, style: TextStyle(color: Colors.orange.shade700)),
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(req, style: AppColors.captionStyle.copyWith(color: AppColors.warningYellow)),
                         )
                     ).toList(),
                   ),
@@ -1359,21 +2321,21 @@ class DashboardView extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
-                child: Text('ok'.tr, style: TextStyle(color: Colors.grey.shade600)),
+                child: Text('ok'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
               ),
               ElevatedButton(
                 onPressed: () {
                   Get.back();
                   // انتظار قصير قبل الانتقال
-                  Future.delayed(Duration(milliseconds: 200), () {
+                  Future.delayed(const Duration(milliseconds: 200), () {
                     _viewOrder(order);
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade600,
+                  backgroundColor: AppColors.warningYellow,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: Text('add_requirements'.tr, style: TextStyle(color: Colors.white)),
+                child: Text('add_requirements'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
               ),
             ],
           ),
@@ -1388,9 +2350,9 @@ class DashboardView extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(Icons.check_circle_outline, color: Colors.green.shade600, size: 22),
-              SizedBox(width: 8),
-              Text('complete_order'.tr, style: TextStyle(fontSize: 16)),
+              const Icon(Icons.check_circle_outline, color: AppColors.successGreen, size: 22),
+              const SizedBox(width: 8),
+              Text('complete_order'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
             ],
           ),
           content: Column(
@@ -1399,30 +2361,33 @@ class DashboardView extends StatelessWidget {
             children: [
               Text(
                 'confirm_completion'.tr.replaceAll('client',  order.client),
-                style: TextStyle(fontSize: 14, height: 1.4, fontWeight: FontWeight.w500),
+                style: AppColors.bodyStyle.copyWith(
+                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 12),
               Container(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: AppColors.lightGreenBg,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade200),
+                  border: Border.all(color: AppColors.successGreen.withOpacity(0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'all_requirements_met'.tr,
-                      style: TextStyle(
-                        color: Colors.green.shade700,
+                      style: AppColors.bodyStyle.copyWith(
+                        color: AppColors.successGreen,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 6),
-                    Text('photos_added'.tr, style: TextStyle(color: Colors.green.shade600)),
-                    Text('driver_sign_added'.tr, style: TextStyle(color: Colors.green.shade600)),
-                    Text('customer_sign_added'.tr, style: TextStyle(color: Colors.green.shade600)),
+                    const SizedBox(height: 6),
+                    Text('photos_added'.tr, style: AppColors.captionStyle.copyWith(color: AppColors.successGreen)),
+                    Text('driver_sign_added'.tr, style: AppColors.captionStyle.copyWith(color: AppColors.successGreen)),
+                    Text('customer_sign_added'.tr, style: AppColors.captionStyle.copyWith(color: AppColors.successGreen)),
                   ],
                 ),
               ),
@@ -1431,15 +2396,12 @@ class DashboardView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Get.back(result: false),
-              child: Text('cancel'.tr, style: TextStyle(color: Colors.grey.shade600)),
+              child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
             ),
             ElevatedButton(
               onPressed: () => Get.back(result: true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Text('complete_order'.tr, style: TextStyle(color: Colors.white)),
+              style: AppColors.successButtonStyle,
+              child: Text('complete_order'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
             ),
           ],
         ),
@@ -1450,7 +2412,7 @@ class DashboardView extends StatelessWidget {
       if (confirmed != true) return;
 
       // انتظار قصير قبل عرض مؤشر التحميل
-      await Future.delayed(Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 200));
 
       // متغير لتتبع حالة مؤشر التحميل
       bool isLoadingDialogOpen = false;
@@ -1462,17 +2424,17 @@ class DashboardView extends StatelessWidget {
             onWillPop: () async => false, // منع الإغلاق بالضغط على الخلف
             child: Center(
               child: Container(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.pureWhite,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: Colors.green.shade600),
-                    SizedBox(height: 16),
-                    Text('completing_order'.tr, style: TextStyle(fontSize: 14)),
+                    const CircularProgressIndicator(color: AppColors.successGreen),
+                    const SizedBox(height: 16),
+                    Text('completing_order'.tr, style: AppColors.bodyStyle),
                   ],
                 ),
               ),
@@ -1492,29 +2454,29 @@ class DashboardView extends StatelessWidget {
         }
 
         // انتظار قصير قبل عرض النتيجة
-        await Future.delayed(Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 300));
 
         if (success) {
           // عرض رسالة نجاح بدون تداخل
           Get.snackbar(
             '🎉 ${'order_completed'.tr}',
             'order_completed_success'.tr.replaceAll('client', order.client),
-            backgroundColor: Colors.green.shade600,
-            colorText: Colors.white,
+            backgroundColor: AppColors.successGreen,
+            colorText: AppColors.whiteText,
             snackPosition: SnackPosition.TOP,
-            duration: Duration(seconds: 4),
-            margin: EdgeInsets.all(16),
+            duration: const Duration(seconds: 4),
+            margin: const EdgeInsets.all(16),
             borderRadius: 12,
-            icon: Icon(Icons.check_circle, color: Colors.white),
+            icon: const Icon(Icons.check_circle, color: AppColors.whiteText),
           );
         } else {
           Get.snackbar(
             'error'.tr,
             'operation_failed'.tr,
-            backgroundColor: Colors.red.shade600,
-            colorText: Colors.white,
+            backgroundColor: AppColors.errorRed,
+            colorText: AppColors.whiteText,
             snackPosition: SnackPosition.TOP,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           );
         }
       } catch (e) {
@@ -1529,15 +2491,15 @@ class DashboardView extends StatelessWidget {
         }
 
         // انتظار قصير قبل عرض رسالة الخطأ
-        await Future.delayed(Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 300));
 
         Get.snackbar(
           'error'.tr,
           'order_completion_failed'.tr.replaceAll('error', e.toString()),
-          backgroundColor: Colors.red.shade600,
-          colorText: Colors.white,
+          backgroundColor: AppColors.errorRed,
+          colorText: AppColors.whiteText,
           snackPosition: SnackPosition.TOP,
-          duration: Duration(seconds: 5),
+          duration: const Duration(seconds: 5),
         );
       }
     } catch (e) {
@@ -1553,13 +2515,13 @@ class DashboardView extends StatelessWidget {
       }
 
       // انتظار قبل عرض رسالة الخطأ
-      await Future.delayed(Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       Get.snackbar(
         'خطأ',
         'حدث خطأ غير متوقع: $e',
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
       );
     }
@@ -1571,30 +2533,27 @@ class DashboardView extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.logout_rounded, color: Colors.red.shade600, size: 22),
-            SizedBox(width: 8),
-            Text('logout'.tr, style: TextStyle(fontSize: 16)),
+            const Icon(Icons.logout_rounded, color: AppColors.errorRed, size: 22),
+            const SizedBox(width: 8),
+            Text('logout'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
           ],
         ),
         content: Text(
           'logout_confirmation'.tr,
-          style: TextStyle(fontSize: 14, height: 1.4),
+          style: AppColors.bodyStyle.copyWith(height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('cancel'.tr, style: TextStyle(color: Colors.grey.shade600)),
+            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
           ),
           ElevatedButton(
             onPressed: () {
               Get.back();
               authController.logout();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text('logout'.tr, style: TextStyle(color: Colors.white)),
+            style: AppColors.dangerButtonStyle,
+            child: Text('logout'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
           ),
         ],
       ),

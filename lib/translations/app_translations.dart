@@ -502,6 +502,15 @@ class AppTranslations extends Translations {
           'signature_conversion_failed': 'Failed to convert signature',
           'signature_save_failed_error': 'Failed to save signature: {error}',
 
+
+          'additional_vehicle_info': 'Additional Vehicle Information',
+          'ukz': 'ÜKZ',
+          'fin': 'FIN',
+          'bestellnummer': 'Order Number',
+          'leasingvertragsnummer': 'Leasing Contract Number',
+          'kostenstelle': 'Cost Center',
+          'bemerkung': 'Remarks',
+
         },
         'ar': {
           'app_title': 'نظام تسليم واستلام المركبات',
@@ -683,8 +692,8 @@ class AppTranslations extends Translations {
           'client_data': 'بيانات العميل',
           'vehicle_data': 'بيانات المركبة',
           'client_info': 'معلومات العميل',
-          'client_name': 'اسم العميل',
-          'client_name_required': 'اسم العميل مطلوب',
+          'client_name': 'الاسم',
+          'client_name_required': 'الاسم مطلوب',
           'phone_number': 'رقم الهاتف',
           'email_address': 'البريد الإلكتروني',
           'order_description': 'وصف الطلب',
@@ -982,6 +991,210 @@ class AppTranslations extends Translations {
           'add_signature_first': 'يرجى إضافة التوقيع أولاً',
           'signature_conversion_failed': 'فشل في تحويل التوقيع',
           'signature_save_failed_error': 'فشل في حفظ التوقيع: {error}',
+
+
+          'additional_vehicle_info': 'معلومات إضافية للمركبة',
+          'ukz': 'ÜKZ',
+          'fin': 'FIN',
+          'bestellnummer': 'رقم الطلب',
+          'leasingvertragsnummer': 'رقم عقد الإيجار',
+          'kostenstelle': 'مركز التكلفة',
+          'bemerkung': 'ملاحظات',
+
+          // new words
+          "client_address": "العنوان",
+          "billing_info": "بيانات صاحب الفاتورة",
+          "same_as_client": "نفس بيانات العميل",
+          "billing_same_client_desc": "صاحب الفاتورة هو نفس مقدم الطلب",
+          "billing_name": "الاسم",
+          "billing_phone": "الرقم",
+          "billing_email": "البريج الالكتروني",
+          "billing_address": "العنوان",
+          "billing_name_required": "الاسم مطلوب",
+          "billing_phone_required": "الهاتف مطلوب",
+          "billing_email_required": "البريد مطلوب",
+          "billing_address_required": "العنوان مطلوب",
+
+
+          "client_information": "معلومات مقدم الطلب",
+          "billing_information": "معلومات صاحب الفاتورة",
+          "vehicle_service_info": "معلومات السيارة والخدمة",
+          "different_billing_info": "معلومات فوترة منفصلة" ,
+
+
+
+          'vehicle_items': 'أغراض السيارة',
+          'select_available_items': 'اختر الأغراض المتاحة مع السيارة',
+          'partition_net': 'شبكة التقسيم',
+          'winter_tires': 'إطارات شتوية',
+          'hubcaps': 'أغطية العجل',
+          'rear_parcel_shelf': 'رف الطرود الخلفي',
+          'navigation_system': 'نظام الملاحة',
+          'trunk_roll_cover': 'غطاء صندوق السيارة',
+          'safety_vest': 'سترة الأمان',
+          'vehicle_keys': 'مفاتيح السيارة',
+          'warning_triangle': 'مثلث التحذير',
+          'radio': 'راديو',
+          'alloy_wheels': 'عجلات سبيكة',
+          'summer_tires': 'إطارات صيفية',
+          'operating_manual': 'دليل التشغيل',
+          'registration_document': 'وثيقة التسجيل',
+          'compressor_repair_kit': 'طقم الضاغط/الإصلاح',
+          'tools_jack': 'الأدوات/الجاك',
+          'second_set_of_tires': 'مجموعة ثانية من الإطارات',
+          'emergency_wheel': 'عجلة الطوارئ',
+          'antenna': 'الهوائي',
+          'fuel_card': 'بطاقة الوقود',
+          'first_aid_kit': 'طقم الإسعافات الأولية',
+          'spare_tire': 'الإطار الاحتياطي',
+          'service_book': 'كتاب الخدمة',
+
+          // Extended Address Fields - حقول العنوان الإضافية
+          'additional_pickup_info': 'معلومات إضافية للاستلام',
+          'additional_delivery_info': 'معلومات إضافية للتسليم',
+          'pickup_date': 'تاريخ الاستلام',
+          'delivery_date': 'تاريخ التسليم',
+          'company_name': 'اسم الشركة',
+          'contact_person_name': 'اسم الموظف المختص',
+          'contact_person_phone': 'هاتف الموظف',
+          'contact_person_email': 'بريد الموظف',
+          'fuel_level': 'مستوى الوقود',
+          'fuel_meter': 'عداد الوقود',
+
+          // Extended Notes - ملاحظات إضافية
+          'order_creation_note_extended': 'بعد إنشاء الطلبية، ستحتاج لإضافة الصور، التوقيعات، والمصاريف لإكمال الطلب. تأكد من تعبئة جميع البيانات المطلوبة بدقة.',
+
+          // Validation Messages - رسائل التحقق
+          'company_name_required': 'اسم الشركة مطلوب',
+          'contact_person_required': 'بيانات الموظف المختص مطلوبة',
+
+          // Success Messages - رسائل النجاح
+          'order_created_with_details': 'تم إنشاء الطلبية بنجاح مع جميع التفاصيل',
+          'all_data_saved': 'تم حفظ جميع البيانات بنجاح',
+
+
+
+          'destination_address': 'عنوان الهدف',
+          'contact_person': 'الموظف المختص',
+          'fuel_information': 'معلومات الوقود',
+          'available_items': 'الأغراض المتاحة',
+          'address': 'العنوان',
+          'date': 'التاريخ',
+
+
+
+          // German Fields
+          'typ': 'النوع',
+
+          // Additional Info
+          'basic_vehicle_data': 'البيانات الأساسية للسيارة',
+          'service_information': 'معلومات الخدمة',
+
+          // Vehicle Damages
+          'vehicle_damages': 'أضرار السيارة',
+          'select_vehicle_damages': 'حدد الأضرار الموجودة في السيارة',
+          'damage_types_for': 'أنواع الأضرار لـ {side}',
+          'damage_description': 'وصف الأضرار',
+          'describe_damages_for': 'اوصف الأضرار الموجودة في {side}',
+          'total_damages_selected': 'إجمالي الأضرار المحددة: {count}',
+          'clear_all': 'مسح الكل',
+
+          // Vehicle Sides
+          'vehicle_front': 'الأمام',
+          'vehicle_rear': 'الخلف',
+          'vehicle_left': 'اليسار',
+          'vehicle_right': 'اليمين',
+          'vehicle_top': 'الأعلى',
+
+          // Damage Types
+          'dent_bump': 'خدش/نتوء',
+          'stone_chip': 'رقائق حجرية',
+          'scratch_graze': 'خدش/كشط',
+          'paint_damage': 'ضرر طلاء',
+          'crack_break': 'تشقق/كسر',
+          'missing': 'مفقود',
+
+          'no_damages_reported': 'لا توجد أضرار مبلغ عنها',
+          'vehicle_in_good_condition': 'السيارة في حالة جيدة',
+          'damages': 'أضرار',
+          'vehicle': 'السيارة',
+
+          'generating_html_report': 'جاري إنشاء تقرير HTML...',
+          'please_wait': 'يرجى الانتظار',
+          'html_report_generated': 'تم إنشاء تقرير HTML',
+          'html_report_saved_successfully': 'تم حفظ التقرير بنجاح وهو جاهز للمشاركة',
+          'html_report_ready_to_view': 'التقرير جاهز للعرض',
+          'report_generation_failed': 'فشل في إنشاء التقرير',
+          'report_generation_error_message': 'حدث خطأ أثناء إنشاء التقرير. يرجى المحاولة مرة أخرى.',
+          'retry': 'إعادة المحاولة',
+          'share': 'مشاركة',
+          'file_path_copied': 'تم نسخ مسار الملف',
+          'file_path_copied_to_clipboard': 'تم نسخ مسار الملف إلى الحافظة',
+          'no_email_address': 'لا يوجد عنوان بريد إلكتروني',
+          'no_client_email_message': 'لا يوجد عنوان بريد إلكتروني مُسجل لهذا العميل',
+          'enter_email': 'إدخال البريد الإلكتروني',
+          'enter_email_address': 'إدخال عنوان البريد الإلكتروني',
+          'enter_email_to_send_report': 'أدخل عنوان البريد الإلكتروني لإرسال التقرير',
+          'invalid_email_format': 'تنسيق البريد الإلكتروني غير صحيح',
+          'continue': 'متابعة',
+          'confirm_send_email': 'تأكيد إرسال البريد الإلكتروني',
+          'confirm_send_report_email': 'هل تريد إرسال تقرير HTML لهذه الطلبية عبر البريد الإلكتروني؟',
+
+          'email_report_info': 'سيتم إرسال تقرير HTML تفاعلي يحتوي على جميع تفاصيل الطلبية',
+          'sending_email_report': 'جاري إرسال التقرير بالبريد الإلكتروني...',
+          'please_wait_sending': 'يرجى الانتظار جاري الإرسال...',
+          'email_sent_successfully': 'تم إرسال البريد الإلكتروني بنجاح',
+          'email_sent_success_message': 'تم إرسال تقرير HTML بنجاح إلى العنوان المحدد.',
+          'sent_to': 'تم الإرسال إلى',
+          'sent_at': 'وقت الإرسال',
+          'great': 'ممتاز',
+          'email_sent': 'تم إرسال البريد الإلكتروني',
+          'report_sent_to_email': 'تم إرسال التقرير إلى EMAIL',
+          'email_send_failed': 'فشل في إرسال البريد الإلكتروني',
+          'email_send_failed_message': 'لم نتمكن من إرسال التقرير بالبريد الإلكتروني.',
+          'error_details': 'تفاصيل الخطأ',
+          'unknown_error': 'خطأ غير معروف',
+          'technical_error': 'خطأ تقني',
+          'connection_error': 'خطأ في الاتصال',
+          'email_connection_error_message': 'حدث خطأ في الاتصال أثناء إرسال البريد الإلكتروني.',
+          'troubleshooting_steps': 'خطوات استكشاف الأخطاء',
+          'check_internet_connection': 'تحقق من اتصال الإنترنت',
+          'verify_email_address': 'تحقق من صحة عنوان البريد الإلكتروني',
+          'try_again_later': 'حاول مرة أخرى لاحقاً',
+          'technical_details': 'التفاصيل التقنية',
+          'just_now': 'الآن',
+          'minutes_ago': 'منذ COUNT دقيقة',
+          'hours_ago': 'منذ COUNT ساعة',
+
+          'html_report': 'تقرير HTML',
+          'preview': 'معاينة',
+          'html_report_failed': 'فشل في إنشاء تقرير HTML',
+          'html_report_error_message': 'حدث خطأ أثناء إنشاء تقرير HTML. يرجى المحاولة مرة أخرى.',
+          'creating_interactive_report': 'جاري إنشاء تقرير تفاعلي...',
+          'failed_to_open_html_file': 'فشل في فتح ملف HTML',
+          'failed_to_save_html_file': 'فشل في حفظ ملف HTML: ERROR',
+          'options': 'خيارات',
+          'report_options': 'خيارات التقرير',
+          'report_generated_successfully_options': 'تم إنشاء التقرير بنجاح! اختر ما تريد فعله:',
+          'share_report': 'مشاركة التقرير',
+          'share_with_other_apps': 'مشاركة مع تطبيقات أخرى',
+          'send_by_email': 'إرسال بالبريد الإلكتروني',
+          'send_to_client_email': 'إرسال إلى بريد العميل',
+          'copy_file_path': 'نسخ مسار الملف',
+          'copy_path_to_clipboard': 'نسخ المسار إلى الحافظة',
+          'file_path_copied_successfully': 'تم نسخ مسار الملف بنجاح',
+          'share_error': 'خطأ في المشاركة',
+          'failed_to_share_file': 'فشل في مشاركة الملف',
+          'path_copied': 'تم نسخ المسار',
+          'loading_preview': 'جاري تحميل المعاينة...',
+          'preparing_report_preview': 'جاري تحضير معاينة التقرير...',
+          'preview_failed': 'فشلت المعاينة',
+          'failed_to_load_preview': 'فشل في تحميل المعاينة: ERROR',
+          'preview_opened': 'تم فتح المعاينة',
+          'report_preview_ready': 'معاينة التقرير جاهزة',
+          'failed_to_open_preview': 'فشل في فتح المعاينة',
+          'failed_to_display_preview': 'فشل في عرض المعاينة: ERROR',
+
         },
         'de': {
           'app_title': 'Fahrzeugübergabesystem',
@@ -1070,8 +1283,8 @@ class AppTranslations extends Translations {
           'ok': 'OK',
           'completing_order': 'Auftrag wird abgeschlossen...',
           'error_in_complete_order': 'Fehler in completeOrder',
-          'unexpected_error': 'Unerwarteter Fehler: {error}',
-          'order_completion_failed': 'Fehler beim Abschließen des Auftrags: {error}',
+          'unexpected_error': 'Unerwarteter Fehler: error',
+          'order_completion_failed': 'Fehler beim Abschließen des Auftrags: error',
 
           'order_details': 'Auftragsdetails',
           'edit_details': 'Details bearbeiten',
@@ -1102,7 +1315,7 @@ class AppTranslations extends Translations {
           'failed_to_load_image': 'Bild konnte nicht geladen werden',
           'signatures': 'Unterschriften',
           'not_signed_yet': 'Noch nicht unterschrieben',
-          'signed_at': 'Unterschrieben am: {date}',
+          'signed_at': 'Unterschrieben am: date',
           'expenses': 'Auslagen',
           'no_expenses_added': 'Keine Auslagen hinzugefügt',
           'click_to_add_expenses': 'Zum Hinzufügen von Auslagen klicken',
@@ -1119,8 +1332,8 @@ class AppTranslations extends Translations {
           'damage': 'Schaden',
           'interior': 'Innenraum',
           'exterior': 'Außenbereich',
-          'error_handling_exit': 'Fehler beim Behandeln des Beendens: {error}',
-          'error_updating_dashboard': 'Fehler beim Aktualisieren des Dashboards vor dem Beenden: {error}',
+          'error_handling_exit': 'Fehler beim Behandeln des Beendens: error',
+          'error_updating_dashboard': 'Fehler beim Aktualisieren des Dashboards vor dem Beenden: error',
 
           // Expenses Page Terms - المصطلحات الجديدة لصفحة المصاريف
           'edit_expenses': 'Auslagen bearbeiten',
@@ -1144,11 +1357,11 @@ class AppTranslations extends Translations {
           'save_expenses_btn': 'Auslagen speichern',
           'warning': 'Warnung',
           'must_enter_amount_greater_zero': 'Sie müssen einen Betrag größer als Null eingeben',
-          'success_saved': '✅ Erfolgreich',
+          'success_saved': '✓ Erfolgreich',
           'expenses_updated_successfully': 'Auslagen erfolgreich aktualisiert',
           'expenses_saved_successfully': 'Auslagen erfolgreich gespeichert',
-          'error_occurred': '❌ Fehler',
-          'failed_to_save_expenses': 'Fehler beim Speichern der Auslagen: {error}',
+          'error_occurred': '✗ Fehler',
+          'failed_to_save_expenses': 'Fehler beim Speichern der Auslagen: error',
           'fuel_label': 'Kraftstoff',
           'vehicle_wash_label': 'Fahrzeugwäsche',
           'adblue_label': 'AdBlue',
@@ -1180,12 +1393,12 @@ class AppTranslations extends Translations {
           'postal_code_required': 'Postleitzahl ist erforderlich',
           'city': 'Stadt',
           'city_required': 'Stadt ist erforderlich',
-          'starting_save_process': '🔄 Speichervorgang wird gestartet...',
+          'starting_save_process': '↻ Speichervorgang wird gestartet...',
           'changes_saved': 'Änderungen gespeichert',
           'failed_to_save_changes': 'Fehler beim Speichern der Änderungen',
           'error_occurred_while_saving': 'Ein Fehler ist beim Speichern aufgetreten',
-          'request_timeout': '⏰ Anfrage-Timeout',
-          'save_error': '❌ Speicherfehler: {error}',
+          'request_timeout': '⌛ Anfrage-Timeout',
+          'save_error': '✗ Speicherfehler: error',
           'transport': 'Transport',
           'wash': 'Waschen',
           'registration': 'Registrierung',
@@ -1229,7 +1442,7 @@ class AppTranslations extends Translations {
           'auth_error': 'Authentifizierungsfehler',
           'access_denied': 'Zugriff verweigert: Nur Fahrer können sich anmelden',
           'login_success': 'Anmeldung erfolgreich',
-          'welcome_user': 'Willkommen {name}',
+          'welcome_user': 'Willkommen name',
           'invalid_credentials': 'Ungültige E-Mail oder Passwort',
           'login_error': 'Anmeldefehler aufgetreten',
           'connection_failed': 'Verbindung fehlgeschlagen. Bitte überprüfen Sie Ihre Internetverbindung',
@@ -1252,7 +1465,7 @@ class AppTranslations extends Translations {
           // Auftragsverwaltung
           'order_management': 'Auftragsverwaltung',
           'create_order_success': 'Auftrag erfolgreich erstellt',
-          'order_number': 'Auftragsnummer: {number}',
+          'order_number': 'Auftragsnummer: number',
           'order_updated_success': 'Auftrag erfolgreich aktualisiert',
           'order_deleted_success': 'Auftrag erfolgreich gelöscht',
           'order_not_found': 'Auftrag nicht gefunden',
@@ -1260,10 +1473,10 @@ class AppTranslations extends Translations {
 
           // Auftragsstatus-Nachrichten
           'status_updated_success': 'Auftragsstatus aktualisiert',
-          'status_changed_to': 'Auftragsstatus geändert zu: {status}',
-          'cannot_update_status': 'Status kann nicht von {from} zu {to} aktualisiert werden',
+          'status_changed_to': 'Auftragsstatus geändert zu: status',
+          'cannot_update_status': 'Status kann nicht von from zu to aktualisiert werden',
           'order_ready_for_completion': 'Auftrag bereit zum Abschluss',
-          'order_completed_success_detailed': 'Auftrag {client} erfolgreich abgeschlossen',
+          'order_completed_success_detailed': 'Auftrag client erfolgreich abgeschlossen',
           'order_started_success': 'Auftragsausführung gestartet',
           'order_cancelled_success': 'Auftrag erfolgreich storniert',
 
@@ -1278,7 +1491,7 @@ class AppTranslations extends Translations {
           'order_not_found_locally': 'Auftrag lokal nicht gefunden',
 
           // Anforderungen und Abschluss
-          'requirements_for_completion': 'Zum Abschluss des Auftrags müssen Sie hinzufügen: {requirements}',
+          'requirements_for_completion': 'Zum Abschluss des Auftrags müssen Sie hinzufügen: requirements',
           'add_vehicle_photos_req': 'Fahrzeugfotos hinzufügen',
           'driver_signature_req': 'Fahrerunterschrift',
           'customer_signature_req': 'Kundenunterschrift',
@@ -1291,15 +1504,15 @@ class AppTranslations extends Translations {
           'cannot_cancel_completed': 'Abgeschlossener Auftrag kann nicht storniert werden',
           'order_already_cancelled': 'Auftrag bereits storniert',
           'confirm_cancellation': 'Stornierung bestätigen',
-          'cancel_order_confirmation': 'Sind Sie sicher, dass Sie Auftrag "{client}" stornieren möchten?\n\nAuftragsstatus wird auf "storniert" geändert.',
+          'cancel_order_confirmation': 'Sind Sie sicher, dass Sie Auftrag "client" stornieren möchten?\n\nAuftragsstatus wird auf "storniert" geändert.',
           'no_continue': 'Nein, fortfahren',
           'yes_cancel_order': 'Ja, Auftrag stornieren',
 
           // Löschbestätigung
           'confirm_delete': 'Löschen bestätigen',
-          'delete_order_confirmation': 'Sind Sie sicher, dass Sie Auftrag "{client}" löschen möchten?',
+          'delete_order_confirmation': 'Sind Sie sicher, dass Sie Auftrag "client" löschen möchten?',
           'order_deleted_permanently': 'Auftrag wird dauerhaft gelöscht und kann nicht wiederhergestellt werden',
-          'order_deleted_success_detailed': 'Auftrag "{client}" erfolgreich gelöscht',
+          'order_deleted_success_detailed': 'Auftrag "client" erfolgreich gelöscht',
 
           // Bildverwaltung
           'signature_saved_success': 'Unterschrift erfolgreich gespeichert',
@@ -1310,13 +1523,13 @@ class AppTranslations extends Translations {
           // Filter und Suche
           'orders_refreshed': 'Aufträge aktualisiert',
           'orders_list_updated': 'Auftragsliste aktualisiert',
-          'filter_error': 'Fehler beim Filtern der Aufträge: {error}',
+          'filter_error': 'Fehler beim Filtern der Aufträge: error',
 
           // Statistiken
-          'image_statistics_error': 'Fehler beim Berechnen der Bildstatistiken: {error}',
-          'images_by_category_error': 'Fehler beim Abrufen der Bilder nach Kategorie: {error}',
-          'image_requirements_error': 'Fehler beim Überprüfen der Bildanforderungen: {error}',
-          'order_readiness_error': 'Fehler beim Überprüfen der Auftragsbereitschaft: {error}',
+          'image_statistics_error': 'Fehler beim Berechnen der Bildstatistiken: error',
+          'images_by_category_error': 'Fehler beim Abrufen der Bilder nach Kategorie: error',
+          'image_requirements_error': 'Fehler beim Überprüfen der Bildanforderungen: error',
+          'order_readiness_error': 'Fehler beim Überprüfen der Auftragsbereitschaft: error',
           'order_not_ready_missing_images': 'Auftrag nicht bereit: fehlende Bilder',
           'order_not_ready_missing_signatures': 'Auftrag nicht bereit: fehlende Unterschriften',
 
@@ -1325,18 +1538,18 @@ class AppTranslations extends Translations {
           'connection_timeout': 'Verbindungs-Timeout, bitte erneut versuchen',
           'login_again': 'Bitte erneut anmelden',
           'data_not_found': 'Angeforderte Daten nicht gefunden',
-          'updating_order_from_to': 'Auftragsstatus wird von {from} zu {to} aktualisiert',
+          'updating_order_from_to': 'Auftragsstatus wird von from zu to aktualisiert',
           'order_updated_locally': 'Auftrag lokal aktualisiert',
           'updated_data_not_returned': 'Aktualisierte Daten vom Server nicht zurückgegeben',
-          'notifying_controllers_error': 'Fehler beim Benachrichtigen der Controller: {error}',
-          'refreshing_order': 'Auftrag wird aktualisiert: {orderId}',
+          'notifying_controllers_error': 'Fehler beim Benachrichtigen der Controller: error',
+          'refreshing_order': 'Auftrag wird aktualisiert: orderId',
           'order_updated_dashboard': 'Auftrag im Dashboard aktualisiert',
-          'refresh_order_error': 'Fehler beim Aktualisieren des Auftrags: {error}',
+          'refresh_order_error': 'Fehler beim Aktualisieren des Auftrags: error',
 
           // E-Mail-Bericht
           'email_report_success': 'Bericht erfolgreich per E-Mail gesendet',
           'email_report_failed': 'Fehler beim Senden des Berichts',
-          'email_send_error': 'Fehler beim Senden der E-Mail: {error}',
+          'email_send_error': 'Fehler beim Senden der E-Mail: error',
 
           // Auftragsbearbeitung
           'edit_success': 'Erfolgreich',
@@ -1369,7 +1582,7 @@ class AppTranslations extends Translations {
           'confirm_delete_image': 'Bildlöschung bestätigen',
           'confirm_delete_image_message': 'Sind Sie sicher, dass Sie dieses Bild löschen möchten?',
           'confirm_delete_signature': 'Unterschriftlöschung bestätigen',
-          'confirm_delete_signature_message': 'Sind Sie sicher, dass Sie die {signerType}-Unterschrift löschen möchten?',
+          'confirm_delete_signature_message': 'Sind Sie sicher, dass Sie die signerType-Unterschrift löschen möchten?',
           'driver': 'Fahrer',
           'customer': 'Kunde',
           'image_deleted_success': 'Bild erfolgreich gelöscht',
@@ -1378,54 +1591,54 @@ class AppTranslations extends Translations {
           'failed_delete_signature': 'Fehler beim Löschen der Unterschrift',
 
           // Bild-Upload-Nachrichten
-          'uploading_images': '{count} Bilder für Auftrag hochladen: {orderId}',
-          'images_uploaded_success': '{uploaded} von {total} Bildern erfolgreich hochgeladen',
+          'uploading_images': 'count Bilder für Auftrag hochladen: orderId',
+          'images_uploaded_success': 'uploaded von total Bildern erfolgreich hochgeladen',
           'failed_upload_images': 'Fehler beim Hochladen der Bilder',
-          'image_upload_error': 'Fehler beim Hochladen der Bilder: {error}',
-          'select_images_error': 'Fehler beim Auswählen der Bilder: {error}',
+          'image_upload_error': 'Fehler beim Hochladen der Bilder: error',
+          'select_images_error': 'Fehler beim Auswählen der Bilder: error',
 
           // Unterschrift-Nachrichten
-          'uploading_signature': 'Unterschrift für Auftrag hochladen: {orderId}',
-          'signature_upload_error': 'Fehler beim Hochladen der Unterschrift: {error}',
+          'uploading_signature': 'Unterschrift für Auftrag hochladen: orderId',
+          'signature_upload_error': 'Fehler beim Hochladen der Unterschrift: error',
 
           // Auslagen-Nachrichten
-          'updating_expenses_for_order': 'Auslagen für Auftrag aktualisieren: {orderId}',
-          'incoming_expenses_data': 'Eingehende Auslagendaten: {data}',
-          'expenses_update_error': 'Fehler beim Aktualisieren der Auslagen: {error}',
-          'uploading_expenses_for_order': 'Auslagen für Auftrag hochladen: {orderId}',
-          'expenses_upload_error': 'Fehler beim Hochladen der Auslagen: {error}',
+          'updating_expenses_for_order': 'Auslagen für Auftrag aktualisieren: orderId',
+          'incoming_expenses_data': 'Eingehende Auslagendaten: data',
+          'expenses_update_error': 'Fehler beim Aktualisieren der Auslagen: error',
+          'uploading_expenses_for_order': 'Auslagen für Auftrag hochladen: orderId',
+          'expenses_upload_error': 'Fehler beim Hochladen der Auslagen: error',
 
           // Auftragsabschluss
           'starting_order_completion': 'Auftragsabschluss wird gestartet...',
           'cannot_complete_missing_requirements': 'Auftrag kann nicht abgeschlossen werden - fehlende Anforderungen',
-          'missing_requirements_list': 'Fehlende Anforderungen: {requirements}',
-          'completion_confirmed': 'Abschluss für Auftrag {client} bestätigt',
+          'missing_requirements_list': 'Fehlende Anforderungen: requirements',
+          'completion_confirmed': 'Abschluss für Auftrag client bestätigt',
           'order_completion_process_started': 'Auftragsabschlussprozess gestartet',
-          'order_completion_success_with_client': 'Auftrag für {client} erfolgreich abgeschlossen',
-          'order_completion_process_error': 'Fehler im Auftragsabschlussprozess: {error}',
-          'general_completion_error': 'Allgemeiner Fehler beim Auftragsabschluss: {error}',
+          'order_completion_success_with_client': 'Auftrag für client erfolgreich abgeschlossen',
+          'order_completion_process_error': 'Fehler im Auftragsabschlussprozess: error',
+          'general_completion_error': 'Allgemeiner Fehler beim Auftragsabschluss: error',
 
           // Auftragsbearbeitung
-          'opening_edit_page': 'Auftragsbearbeitungsseite öffnen: {orderId}',
-          'order_data_for_editing': 'Auftragsdaten zur Bearbeitung: {fields}',
+          'opening_edit_page': 'Auftragsbearbeitungsseite öffnen: orderId',
+          'order_data_for_editing': 'Auftragsdaten zur Bearbeitung: fields',
           'edit_completed_successfully': 'Bearbeitung erfolgreich abgeschlossen, Daten werden neu geladen',
-          'edit_result': 'Bearbeitungsergebnis: {result}',
-          'error_opening_edit_page': 'Fehler beim Öffnen der Auftragsbearbeitungsseite: {error}',
+          'edit_result': 'Bearbeitungsergebnis: result',
+          'error_opening_edit_page': 'Fehler beim Öffnen der Auftragsbearbeitungsseite: error',
           'cannot_edit_no_data': 'Auftrag kann nicht bearbeitet werden - Daten nicht verfügbar',
-          'error_converting_order_json': 'Fehler beim Konvertieren des Auftrags zu JSON: {error}',
+          'error_converting_order_json': 'Fehler beim Konvertieren des Auftrags zu JSON: error',
           'edit_cancelled': 'Bearbeitung abgebrochen',
 
           // Auftragsstatus-Updates
           'notifying_dashboard_update': 'Dashboard-Daten nach Auftragsstatus-Update aktualisieren',
-          'error_notifying_dashboard': 'Fehler beim Benachrichtigen des Dashboards über Update: {error}',
+          'error_notifying_dashboard': 'Fehler beim Benachrichtigen des Dashboards über Update: error',
           'updating_order_status_server': 'Fehler beim Aktualisieren des Auftragsstatus auf dem Server',
 
           // Controller-Lebenszyklus
           'controller_disposed': 'OrderDetailsController bereinigt',
           'preventing_execution_disposed': 'Ausführung verhindert - Controller bereinigt',
           'order_already_loaded': 'Auftrag bereits geladen',
-          'starting_order_initialization': 'Auftragsinitialisierung starten: {orderId}',
-          'error_loading_order_details': 'Fehler beim Laden der Auftragsdetails: {error}',
+          'starting_order_initialization': 'Auftragsinitialisierung starten: orderId',
+          'error_loading_order_details': 'Fehler beim Laden der Auftragsdetails: error',
           'loading_failed': 'Laden fehlgeschlagen',
 
           // Menüaktionen
@@ -1438,11 +1651,11 @@ class AppTranslations extends Translations {
           // Zusätzliche Validierung
           'order_data_unavailable': 'Auftragsdaten nicht verfügbar',
           'edit_error_title': 'Bearbeitungsfehler',
-          'could_not_open_edit_page': 'Bearbeitungsseite konnte nicht geöffnet werden: {error}',
+          'could_not_open_edit_page': 'Bearbeitungsseite konnte nicht geöffnet werden: error',
 
           // Erfolgsnachrichten mit Details
-          'expenses_total_amount': 'Gesamt: €{amount}',
-          'signature_type_saved': '{type}-Unterschrift gespeichert',
+          'expenses_total_amount': 'Gesamt: €amount',
+          'signature_type_saved': 'type-Unterschrift gespeichert',
 
           // Ladezustände
           'initializing_order': 'Auftrag initialisieren',
@@ -1460,9 +1673,115 @@ class AppTranslations extends Translations {
           'signature_conversion_failed': 'Fehler beim Konvertieren der Unterschrift',
           'signature_save_failed_error': 'Fehler beim Speichern der Unterschrift',
 
+          'additional_vehicle_info': 'Zusätzliche Fahrzeuginformationen',
+          'ukz': 'ÜKZ',
+          'fin': 'FIN',
+          'bestellnummer': 'Bestellnummer',
+          'leasingvertragsnummer': 'Leasingvertragsnummer',
+          'kostenstelle': 'Kostenstelle',
+          'bemerkung': 'Bemerkung',
 
+          "client_address": "Kundenadresse",
+          "billing_info": "Rechnungsinformationen",
+          "same_as_client": "Gleich wie Kunde",
+          "billing_same_client_desc": "Der Rechnungsempfänger ist derselbe wie der Antragsteller",
+          "billing_name": "Name",
+          "billing_phone": "Telefon",
+          "billing_email": "E-Mail",
+          "billing_address": "Adresse",
+          "billing_name_required": "Name ist erforderlich",
+          "billing_phone_required": "Telefon ist erforderlich",
+          "billing_email_required": "E-Mail ist erforderlich",
+          "billing_address_required": "Adresse ist erforderlich",
+
+          "client_information": "Kundeninformationen",
+          "billing_information": "Rechnungsinformationen",
+          "vehicle_service_info": "Fahrzeug- und Serviceinformationen",
+          "different_billing_info": "Abweichende Rechnungsinformationen",
+
+          "vehicle_items": "Fahrzeugzubehör",
+          "select_available_items": "Verfügbare Gegenstände im Fahrzeug auswählen",
+          "partition_net": "Trennnetz",
+          "winter_tires": "Winterreifen",
+          "hubcaps": "Radkappen",
+          "rear_parcel_shelf": "Heckablage",
+          "navigation_system": "Navigationssystem",
+          "trunk_roll_cover": "Kofferraumabdeckung",
+          "safety_vest": "Warnweste",
+          "vehicle_keys": "Fahrzeugschlüssel",
+          "warning_triangle": "Warndreieck",
+          "radio": "Radio",
+          "alloy_wheels": "Leichtmetallfelgen",
+          "summer_tires": "Sommerreifen",
+          "operating_manual": "Betriebsanleitung",
+          "registration_document": "Zulassungsbescheinigung",
+          "compressor_repair_kit": "Kompressor/Reparaturset",
+          "tools_jack": "Werkzeug/Wagenheber",
+          "second_set_of_tires": "Zweiter Reifensatz",
+          "emergency_wheel": "Notrad",
+          "antenna": "Antenne",
+          "fuel_card": "Tankkarte",
+          "first_aid_kit": "Erste-Hilfe-Set",
+          "spare_tire": "Reserverad",
+          "service_book": "Serviceheft",
+
+          "additional_pickup_info": "Zusätzliche Abholinformationen",
+          "additional_delivery_info": "Zusätzliche Lieferinformationen",
+          "pickup_date": "Abholdatum",
+          "delivery_date": "Lieferdatum",
+          "company_name": "Firmenname",
+          "contact_person_name": "Ansprechpartner Name",
+          "contact_person_phone": "Ansprechpartner Telefon",
+          "contact_person_email": "Ansprechpartner E-Mail",
+          "fuel_level": "Kraftstoffstand",
+          "fuel_meter": "Kraftstoffanzeige",
+
+          "order_creation_note_extended": "Nach dem Erstellen der Bestellung müssen Sie Fotos, Unterschriften und Kosten hinzufügen, um die Bestellung abzuschließen. Bitte füllen Sie alle erforderlichen Daten sorgfältig aus.",
+
+          "company_name_required": "Firmenname ist erforderlich",
+          "contact_person_required": "Ansprechpartnerdaten sind erforderlich",
+
+          "order_created_with_details": "Bestellung erfolgreich mit allen Details erstellt",
+          "all_data_saved": "Alle Daten erfolgreich gespeichert",
+
+          "destination_address": "Zieladresse",
+          "contact_person": "Ansprechpartner",
+          "fuel_information": "Kraftstoffinformationen",
+          "available_items": "Verfügbare Gegenstände",
+          "address": "Adresse",
+          "date": "Datum",
+
+          "typ": "Typ",
+
+          "basic_vehicle_data": "Fahrzeuggrunddaten",
+          "service_information": "Serviceinformationen",
+
+          "vehicle_damages": "Fahrzeugschäden",
+          "select_vehicle_damages": "Vorhandene Schäden am Fahrzeug auswählen",
+          "damage_types_for": "Schadensarten für side",
+          "damage_description": "Schadensbeschreibung",
+          "describe_damages_for": "Beschreiben Sie die Schäden an side",
+          "total_damages_selected": "Gesamtausgewählte Schäden: count",
+          "clear_all": "Alles löschen",
+
+          "vehicle_front": "Vorne",
+          "vehicle_rear": "Hinten",
+          "vehicle_left": "Links",
+          "vehicle_right": "Rechts",
+          "vehicle_top": "Oben",
+
+          "dent_bump": "Beule/Delle",
+          "stone_chip": "Steinschlag",
+          "scratch_graze": "Kratzer/Schramme",
+          "paint_damage": "Lackschaden",
+          "crack_break": "Riss/Bruch",
+          "missing": "Fehlt",
+
+          "no_damages_reported": "Keine Schäden gemeldet",
+          "vehicle_in_good_condition": "Fahrzeug ist in gutem Zustand",
+          "damages": "Schäden",
+          "vehicle": "Fahrzeug"
         }
-
 
       };
 }

@@ -4,12 +4,11 @@ class AppConfig {
   static const String buildNumber = '1';
 
   // Environment configurations
-  static const bool isProduction = true;
-  static const bool isPhone = true;
+  static const bool isProduction = false;
+  static const bool isPhone = false;
 
   static const bool enableLogging = true;
   static const bool enableCrashlytics = false;
-
 
 
   // API Configuration

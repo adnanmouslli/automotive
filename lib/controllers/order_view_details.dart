@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:automotive/controllers/order_controller.dart';
 import 'package:automotive/services/OrderDetailsService.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import '../models/new_order.dart';
 import '../routes/app_pages.dart';
+import '../utils/AppColors.dart';
 import 'auth_controller.dart';
 
 class OrderDetailsController extends GetxController {
@@ -94,6 +97,8 @@ class OrderDetailsController extends GetxController {
       final orderData = await _service.getOrderDetails(orderId);
       if (orderData != null && !_isDisposed) {
         _order.value = orderData;
+        print("=========================");
+        print(jsonEncode(_order.value));
         _isInitialized.value = true;
         if (!_isDisposed) update();
       }
@@ -420,7 +425,6 @@ class OrderDetailsController extends GetxController {
         barrierDismissible: true,
       );
 
-      if (confirmed != true) return;
 
       print('🔄 ${'starting_order_completion'.tr}');
 
@@ -865,20 +869,38 @@ class OrderDetailsController extends GetxController {
 
       final confirmed = await Get.dialog<bool>(
         AlertDialog(
-          title: Text('confirm_delete_signature'.tr),
+          backgroundColor: AppColors.pureWhite,
+          title: Text(
+            'confirm_delete_signature'.tr,
+            style: AppColors.subHeadingStyle,
+          ),
           content: Text(
-              'confirm_delete_signature_message'.tr.replaceAll(
-                'signerType', isDriver ? 'driver'.tr : 'customer'.tr
-              )),
+            'confirm_delete_signature_message'.tr.replaceAll(
+                'signerType',
+                isDriver ? 'driver'.tr : 'customer'.tr
+            ),
+            style: AppColors.bodyStyle,
+          ),
           actions: [
             TextButton(
               onPressed: () => Get.back(result: false),
-              child: Text('cancel'.tr),
+              style: AppColors.secondaryButtonStyle,
+              child: Text(
+                'cancel'.tr,
+                style: AppColors.buttonTextStyle.copyWith(
+                  color: AppColors.primaryBlue,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Get.back(result: true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: Text('delete'.tr),
+              style: AppColors.dangerButtonStyle,
+              child: Text(
+                'delete'.tr,
+                style: AppColors.buttonTextStyle.copyWith(
+                  color: AppColors.whiteText,
+                ),
+              ),
             ),
           ],
         ),
@@ -895,15 +917,22 @@ class OrderDetailsController extends GetxController {
         if (success) {
           // إعادة تحميل تفاصيل الطلبية لتحديث التوقيعات
           await loadOrderDetails(order!.id);
-          _showSuccessSnackbar('signature_deleted_success'.tr,
+
+          _showSuccessSnackbar(
+              'signature_deleted_success'.tr,
               'signature_type_saved'.tr.replaceAll(
-                'type', isDriver ? 'driver'.tr : 'customer'.tr
-              ));
+                  'type',
+                  isDriver ? 'driver'.tr : 'customer'.tr
+              )
+          );
         }
       }
     } catch (e) {
       print('❌ ${'failed_delete_signature'.tr}: $e');
-      _showErrorSnackbar('failed_delete_signature'.tr, e.toString());
+      _showErrorSnackbar(
+          'failed_delete_signature'.tr,
+          e.toString()
+      );
     } finally {
       _isLoading.value = false;
     }

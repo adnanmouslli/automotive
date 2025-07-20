@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../utils/AppColors.dart';
+
 class ExpensesPage extends StatefulWidget {
   @override
   _ExpensesPageState createState() => _ExpensesPageState();
@@ -116,7 +118,7 @@ class _ExpensesPageState extends State<ExpensesPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: AppColors.lightGray,
       appBar: _buildAppBar(),
       body: Form(
         key: _formKey,
@@ -163,24 +165,24 @@ class _ExpensesPageState extends State<ExpensesPage>
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.green.shade600,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.primaryBlue,
+      foregroundColor: AppColors.whiteText,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             _isEditMode ? 'edit_expenses'.tr : 'add_expenses_title'.tr,
-            style: const TextStyle(
-              fontSize: 18,
+            style: AppColors.subHeadingStyle.copyWith(
               fontWeight: FontWeight.bold,
+              color: AppColors.whiteText,
             ),
           ),
           if (_orderId != null)
             Text(
               '${'order_label'.tr} $_orderId',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.white70,
+                color: AppColors.whiteText.withOpacity(0.7),
               ),
             ),
         ],
@@ -193,12 +195,12 @@ class _ExpensesPageState extends State<ExpensesPage>
               label: Text(
                 '€${_totalAmount.toStringAsFixed(2)}',
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.whiteText,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              backgroundColor: Colors.green.shade800,
+              backgroundColor: AppColors.successGreen,
             ),
           ),
       ],
@@ -209,8 +211,8 @@ class _ExpensesPageState extends State<ExpensesPage>
     return Container(
       height: 4,
       child: LinearProgressIndicator(
-        backgroundColor: Colors.grey.shade200,
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade600),
+        backgroundColor: AppColors.borderGray,
+        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
       ),
     );
   }
@@ -223,14 +225,14 @@ class _ExpensesPageState extends State<ExpensesPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.green.shade600,
-            Colors.green.shade700,
+            AppColors.primaryBlue,
+            AppColors.primaryBlue.withOpacity(0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.shade200.withOpacity(0.5),
+            color: AppColors.primaryBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -241,12 +243,12 @@ class _ExpensesPageState extends State<ExpensesPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.whiteText.withOpacity(0.2),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.receipt_long_outlined,
-              color: Colors.white,
+              color: AppColors.whiteText,
               size: 32,
             ),
           ),
@@ -257,10 +259,10 @@ class _ExpensesPageState extends State<ExpensesPage>
               children: [
                 Text(
                   _isEditMode ? 'update_expenses'.tr : 'add_new_expenses'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.whiteText,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -268,7 +270,7 @@ class _ExpensesPageState extends State<ExpensesPage>
                   'enter_all_expenses_desc'.tr,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
+                    color: AppColors.whiteText.withOpacity(0.9),
                   ),
                 ),
               ],
@@ -281,12 +283,10 @@ class _ExpensesPageState extends State<ExpensesPage>
 
   Widget _buildExpensesForm() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+      decoration: AppColors.cardDecoration.copyWith(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.lightShadow,
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -302,21 +302,22 @@ class _ExpensesPageState extends State<ExpensesPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: AppColors.lightBlueBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.account_balance_wallet_outlined,
-                    color: Colors.green.shade600,
+                    color: AppColors.primaryBlue,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   'expenses_details'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.darkGray,
                   ),
                 ),
               ],
@@ -374,7 +375,7 @@ class _ExpensesPageState extends State<ExpensesPage>
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.grey.shade700,
+            color: AppColors.mediumGray,
           ),
         ),
         const SizedBox(height: 8),
@@ -390,9 +391,10 @@ class _ExpensesPageState extends State<ExpensesPage>
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
             ],
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
+              color: AppColors.darkGray,
             ),
             decoration: InputDecoration(
               prefixIcon: Container(
@@ -402,7 +404,7 @@ class _ExpensesPageState extends State<ExpensesPage>
                   color: color.shade600,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: Colors.white, size: 20),
+                child: Icon(icon, color: AppColors.whiteText, size: 20),
               ),
               suffixText: '€',
               suffixStyle: TextStyle(
@@ -411,7 +413,7 @@ class _ExpensesPageState extends State<ExpensesPage>
                 color: color.shade700,
               ),
               hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey.shade400),
+              hintStyle: TextStyle(color: AppColors.secondaryText),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -433,12 +435,10 @@ class _ExpensesPageState extends State<ExpensesPage>
 
   Widget _buildNotesSection() {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+      decoration: AppColors.cardDecoration.copyWith(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.lightShadow,
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -454,21 +454,22 @@ class _ExpensesPageState extends State<ExpensesPage>
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: AppColors.lightBlueBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.note_outlined,
-                    color: Colors.blue.shade600,
+                    color: AppColors.primaryBlue,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Text(
                   'additional_notes'.tr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.darkGray,
                   ),
                 ),
               ],
@@ -476,17 +477,17 @@ class _ExpensesPageState extends State<ExpensesPage>
             const SizedBox(height: 16),
             Container(
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.lightBlueBg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: AppColors.borderGray),
               ),
               child: TextFormField(
                 controller: _notesController,
                 maxLines: 4,
-                style: const TextStyle(fontSize: 16),
+                style: TextStyle(fontSize: 16, color: AppColors.darkGray),
                 decoration: InputDecoration(
                   hintText: 'add_expense_notes_hint'.tr,
-                  hintStyle: TextStyle(color: Colors.grey.shade500),
+                  hintStyle: TextStyle(color: AppColors.secondaryText),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.all(16),
                 ),
@@ -506,14 +507,14 @@ class _ExpensesPageState extends State<ExpensesPage>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.green.shade600,
-            Colors.green.shade700,
+            AppColors.primaryBlue,
+            AppColors.primaryBlue.withOpacity(0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.shade200.withOpacity(0.5),
+            color: AppColors.primaryBlue.withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -526,22 +527,22 @@ class _ExpensesPageState extends State<ExpensesPage>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.whiteText.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.summarize_outlined,
-                  color: Colors.white,
+                  color: AppColors.whiteText,
                   size: 24,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 'expenses_summary'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.whiteText,
                 ),
               ),
             ],
@@ -558,7 +559,7 @@ class _ExpensesPageState extends State<ExpensesPage>
               gradient: LinearGradient(
                 colors: [
                   Colors.transparent,
-                  Colors.white.withOpacity(0.5),
+                  AppColors.whiteText.withOpacity(0.5),
                   Colors.transparent,
                 ],
               ),
@@ -569,17 +570,17 @@ class _ExpensesPageState extends State<ExpensesPage>
             children: [
               Text(
                 'total_amount'.tr,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.whiteText,
                 ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.whiteText,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -587,7 +588,7 @@ class _ExpensesPageState extends State<ExpensesPage>
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
+                    color: AppColors.primaryBlue,
                   ),
                 ),
               ),
@@ -607,16 +608,16 @@ class _ExpensesPageState extends State<ExpensesPage>
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white70,
+            style: TextStyle(
+              color: AppColors.whiteText.withOpacity(0.7),
               fontSize: 14,
             ),
           ),
           const Spacer(),
           Text(
             '€${amount.toStringAsFixed(2)}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.whiteText,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -630,10 +631,10 @@ class _ExpensesPageState extends State<ExpensesPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.pureWhite,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: AppColors.lightShadow,
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -5),
@@ -648,12 +649,10 @@ class _ExpensesPageState extends State<ExpensesPage>
                 onPressed: _isLoading ? null : () => Get.back(),
                 icon: const Icon(Icons.close),
                 label: Text('cancel'.tr),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                style: AppColors.secondaryButtonStyle.copyWith(
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  side: BorderSide(color: Colors.grey.shade400),
                 ),
               ),
             ),
@@ -668,21 +667,25 @@ class _ExpensesPageState extends State<ExpensesPage>
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
                   ),
                 )
                     : Icon(_isEditMode ? Icons.update : Icons.save),
                 label: Text(_isLoading
                     ? 'saving'.tr
                     : _isEditMode ? 'update_expenses_btn'.tr : 'save_expenses_btn'.tr),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade600,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                style: AppColors.primaryButtonStyle.copyWith(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                        (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.disabled)) {
+                        return AppColors.mediumGray;
+                      }
+                      return AppColors.primaryBlue;
+                    },
                   ),
-                  elevation: 4,
+                  padding: MaterialStateProperty.all(
+                    const EdgeInsets.symmetric(vertical: 16),
+                  ),
                 ),
               ),
             ),
@@ -701,8 +704,8 @@ class _ExpensesPageState extends State<ExpensesPage>
       Get.snackbar(
         'warning'.tr,
         'must_enter_amount_greater_zero'.tr,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
+        backgroundColor: AppColors.pendingOrange,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
       );
       return;
@@ -734,18 +737,18 @@ class _ExpensesPageState extends State<ExpensesPage>
         _isEditMode
             ? 'expenses_updated_successfully'.tr
             : 'expenses_saved_successfully'.tr,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
+        backgroundColor: AppColors.successGreen,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.check_circle, color: Colors.white),
+        icon: const Icon(Icons.check_circle, color: AppColors.whiteText),
       );
     } catch (e) {
       Get.snackbar(
         'error_occurred'.tr,
         'failed_to_save_expenses'.tr.replaceAll('error', e.toString()),
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
         snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 4),
       );
