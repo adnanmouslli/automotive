@@ -547,23 +547,49 @@ class _EditOrderViewState extends State<EditOrderView>
         unselectedLabelColor: AppColors.mediumGray,
         indicatorColor: AppColors.primaryBlue,
         indicatorWeight: 3,
-        isScrollable: true,
+        isScrollable: false, // تغيير إلى false لإزالة الفراغ
+        labelPadding: const EdgeInsets.symmetric(horizontal: 8), // تقليل المسافة بين التابات
+        tabAlignment: TabAlignment.fill, // توزيع التابات بالتساوي
         tabs: [
           Tab(
-            icon: Icon(Icons.person_outline),
-            text: 'client_data'.tr,
+            icon: Icon(Icons.person_outline, size: 20),
+            child: Text(
+              'client_data'.tr,
+              style: TextStyle(fontSize: 11), // تقليل حجم الخط
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
           Tab(
-            icon: Icon(Icons.directions_car_outlined),
-            text: 'vehicle_data'.tr,
+            icon: Icon(Icons.directions_car_outlined, size: 20),
+            child: Text(
+              'vehicle_data'.tr,
+              style: TextStyle(fontSize: 11),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
           Tab(
-            icon: Icon(Icons.where_to_vote),
-            text: 'pickup_address'.tr,
+            icon: Icon(Icons.where_to_vote, size: 20),
+            child: Text(
+              'pickup_address'.tr,
+              style: TextStyle(fontSize: 11),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
           Tab(
-            icon: Icon(Icons.location_on),
-            text: 'delivery_address'.tr,
+            icon: Icon(Icons.location_on, size: 20),
+            child: Text(
+              'delivery_address'.tr,
+              style: TextStyle(fontSize: 11),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
           ),
         ],
       ),
@@ -1672,52 +1698,80 @@ class _EditOrderViewState extends State<EditOrderView>
       child: SafeArea(
         child: Row(
           children: [
+            // زر الإلغاء مع حجم مرن
             Expanded(
+              flex: 2, // زيادة المرونة لاستيعاب النص الطويل
               child: OutlinedButton.icon(
                 onPressed: () => Get.back(),
                 icon: Icon(Icons.cancel_outlined, size: 18, color: AppColors.mediumGray),
-                label: Text('cancel'.tr, style: TextStyle(color: AppColors.darkGray)),
-                style: AppColors.secondaryButtonStyle,
+                label: Text(
+                  'cancel'.tr,
+                  style: TextStyle(
+                    color: AppColors.darkGray,
+                    fontSize: 14, // تقليل حجم الخط قليلاً للنص الطويل
+                  ),
+                  overflow: TextOverflow.ellipsis, // تجنب تجاوز النص
+                  maxLines: 1,
+                ),
+                style: AppColors.secondaryButtonStyle.copyWith(
+                  padding: MaterialStateProperty.all(
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12), // تقليل الحشو الداخلي
+                  ),
+                ),
               ),
             ),
             SizedBox(width: 12),
+            // زر الحفظ مع تحسين الألوان والمرونة
             Expanded(
-              flex: 2,
-              child: Obx(() =>
-                  ElevatedButton.icon(
-                    onPressed: _isModified && !_controller.isCreating
-                        ? _submitForm
-                        : null,
-                    icon: _controller.isCreating
-                        ? SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
-                      ),
-                    )
-                        : Icon(Icons.save, size: 18),
-                    label: Text(_controller.isCreating
-                        ? 'saving'.tr
-                        : 'save_changes'.tr),
-                    style: AppColors.primaryButtonStyle.copyWith(
-                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                            (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.disabled)) {
-                            return AppColors.mediumGray;
-                          }
-                          return AppColors.primaryBlue;
-                        },
-                      ),
-                    ),
-                  )),
+              flex: 3, // زيادة المرونة لزر الحفظ
+              child: Obx(() => ElevatedButton.icon(
+                onPressed: _isModified && !_controller.isCreating
+                    ? _submitForm
+                    : null,
+                icon: _controller.isCreating
+                    ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
+                  ),
+                )
+                    : Icon(Icons.save, size: 18),
+                label: Text(
+                  _controller.isCreating
+                      ? 'saving'.tr
+                      : 'save_changes'.tr,
+                  style: TextStyle(
+                    fontSize: 14, // تقليل حجم الخط قليلاً
+                  ),
+                  overflow: TextOverflow.ellipsis, // تجنب تجاوز النص
+                  maxLines: 1,
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isModified && !_controller.isCreating
+                      ? AppColors.primaryBlue // اللون الأساسي عند وجود تعديلات
+                      : AppColors.lightGray, // لون فاتح عند عدم وجود تعديلات
+                  foregroundColor: _isModified && !_controller.isCreating
+                      ? AppColors.whiteText // نص أبيض عند التفعيل
+                      : AppColors.mediumGray, // نص رمادي عند التعطيل
+                  disabledBackgroundColor: AppColors.lightGray, // خلفية رمادية فاتحة عند التعطيل
+                  disabledForegroundColor: AppColors.mediumGray, // نص رمادي عند التعطيل
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: _isModified && !_controller.isCreating ? 2 : 0, // ظل عند التفعيل
+                ),
+              )),
             ),
           ],
         ),
       ),
     );
   }
+
+
   // إضافة دالة _getVehicleItemText المفقودة
   String _getVehicleItemText(VehicleItem item) {
     switch (item) {

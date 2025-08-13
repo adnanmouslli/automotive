@@ -2709,24 +2709,52 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => controller.editOrder(),
-                icon: Icon(Icons.edit_outlined, size: 18),
-                label: Text('edit'.tr),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  side: BorderSide(
-                      color: controller.canEditOrder(order.id)
-                          ? AppColors.progressBlue
-                          : AppColors.borderGray
-                  ),
-                  foregroundColor: controller.canEditOrder(order.id)
-                      ? AppColors.progressBlue
-                      : AppColors.lightGrayText,
-                ),
+              child: GetBuilder<OrderDetailsController>(
+                builder: (controller) {
+                  final canEdit = controller.canEditOrder(order.id);
+
+                  return OutlinedButton.icon(
+                    onPressed: canEdit ? () => controller.editOrder() : null,
+                    icon: Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: canEdit
+                          ? AppColors.primaryBlue
+                          : AppColors.lightGrayText,
+                    ),
+                    label: Text(
+                      'edit'.tr,
+                      style: TextStyle(
+                        color: canEdit
+                            ? AppColors.primaryBlue
+                            : AppColors.lightGrayText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: BorderSide(
+                        color: canEdit
+                            ? AppColors.primaryBlue
+                            : AppColors.borderGray,
+                        width: canEdit ? 2 : 1,
+                      ),
+                      backgroundColor: canEdit
+                          ? AppColors.lightBlueBg
+                          : AppColors.lightGray,
+                      foregroundColor: canEdit
+                          ? AppColors.primaryBlue
+                          : AppColors.lightGrayText,
+                      elevation: canEdit ? 2 : 0,
+                      shadowColor: canEdit
+                          ? AppColors.primaryBlue.withOpacity(0.3)
+                          : Colors.transparent,
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -2822,14 +2850,14 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
                         color: AppColors.successGreen, size: 24),
                   ),
                   const SizedBox(width: 12),
-                  Expanded( // إضافة Expanded حول النص
+                  Expanded(
                     child: Text(
                       'vehicle_damages'.tr,
                       style: AppColors.subHeadingStyle.copyWith(
                         color: AppColors.primaryBlue,
                       ),
-                      overflow: TextOverflow.ellipsis, // إضافة overflow
-                      maxLines: 2, // السماح بسطرين
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
                     ),
                   ),
                 ],
@@ -2917,14 +2945,14 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
                       color: AppColors.errorRed, size: 24),
                 ),
                 const SizedBox(width: 12),
-                Expanded( // إضافة Expanded حول النص
+                Expanded(
                   child: Text(
                     'vehicle_damages'.tr,
                     style: AppColors.subHeadingStyle.copyWith(
                       color: AppColors.primaryBlue,
                     ),
-                    overflow: TextOverflow.ellipsis, // إضافة overflow
-                    maxLines: 2, // السماح بسطرين
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ),
                 const Spacer(),
@@ -2952,15 +2980,146 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
 
             const SizedBox(height: 24),
 
-            // تفاصيل الأضرار لكل جانب
+            // تفاصيل الأضرار لكل جانب - استخدام الدالة المحدثة
             ...damagesBySide.entries.map((entry) {
-              return _buildSideDamageCard(entry.key, entry.value);
+              return _buildSideDamageCardUnified(entry.key, entry.value);
             }).toList(),
           ],
         ),
       ),
     );
   }
+
+
+  Widget _buildSideDamageCardUnified(VehicleSide side, List<VehicleDamage> damages) {
+    final sideColor = AppColors.errorRed;
+    final sideColorBg = AppColors.lightRedBg;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: sideColorBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: sideColor.withOpacity(0.3)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // عنوان الجانب مع عدد الأضرار
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: sideColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(
+                    _getSideIcon(side),
+                    color: AppColors.whiteText,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _getVehicleSideText(side),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.darkGray,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: sideColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${damages.length}',
+                    style: const TextStyle(
+                      color: AppColors.whiteText,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // عرض الأضرار في صف واحد مع chips صغيرة
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: damages.map((damage) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.pureWhite,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: sideColor.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    _getDamageTypeText(damage.type),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: sideColor,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+
+            // عرض الوصف إن وجد (مختصر)
+            if (_hasAnyDescription(damages)) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.pureWhite.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  _getCombinedDescription(damages),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppColors.mediumGray,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // دوال مساعدة للتعامل مع الأوصاف
+  bool _hasAnyDescription(List<VehicleDamage> damages) {
+    return damages.any((damage) => damage.description?.isNotEmpty == true);
+  }
+
+  String _getCombinedDescription(List<VehicleDamage> damages) {
+    final descriptions = damages
+        .where((damage) => damage.description?.isNotEmpty == true)
+        .map((damage) => damage.description!)
+        .toSet() // إزالة التكرار
+        .join(' • ');
+
+    return descriptions.length > 80
+        ? descriptions.substring(0, 80) + '...'
+        : descriptions;
+  }
+
 
   Widget _buildVehicleDiagramWithDamages(Map<VehicleSide, List<VehicleDamage>> damagesBySide) {
     return Container(
@@ -3200,36 +3359,17 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
 
   // دوال مساعدة محدثة
   Color _getSideColor(VehicleSide side) {
-    switch (side) {
-      case VehicleSide.FRONT:
-        return AppColors.progressBlue;
-      case VehicleSide.REAR:
-        return AppColors.successGreen;
-      case VehicleSide.LEFT:
-        return AppColors.pendingOrange;
-      case VehicleSide.RIGHT:
-        return AppColors.primaryBlue;
-      case VehicleSide.TOP:
-        return AppColors.warningYellow;
-    }
+    // لون أحمر موحد للجميع
+    return AppColors.errorRed;
   }
 
   Color _getSideColorBackground(VehicleSide side) {
-    switch (side) {
-      case VehicleSide.FRONT:
-        return AppColors.lightBlueBg;
-      case VehicleSide.REAR:
-        return AppColors.lightGreenBg;
-      case VehicleSide.LEFT:
-        return AppColors.lightOrangeBg;
-      case VehicleSide.RIGHT:
-        return AppColors.lightBlueBg;
-      case VehicleSide.TOP:
-        return AppColors.lightYellowBg;
-    }
+    // خلفية حمراء فاتحة موحدة للجميع
+    return AppColors.lightRedBg;
   }
 
   IconData _getSideIcon(VehicleSide side) {
+    // أيقونات مختلفة للتمييز بين الجوانب
     switch (side) {
       case VehicleSide.FRONT:
         return Icons.keyboard_arrow_up;
@@ -3243,6 +3383,7 @@ class _OrderDetailsViewState extends State<OrderDetailsView> {
         return Icons.keyboard_double_arrow_up;
     }
   }
+
 
   String _getVehicleSideText(VehicleSide side) {
     switch (side) {

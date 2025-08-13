@@ -61,7 +61,7 @@ dependencies:
   dio: ^5.4.0
 
   # Local storage
-  shared_preferences: ^2.2.2
+  # shared_preferences: ^2.2.2
   get_storage: ^2.1.1
 
   # Path handling

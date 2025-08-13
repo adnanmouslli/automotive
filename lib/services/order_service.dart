@@ -1435,6 +1435,72 @@ class NewOrderService {
     return true ;
   }
 
+  // توليد وتحميل PDF بدلاً من HTML
+  Future<Uint8List> generateOrderPdfReport(String orderId) async {
+    try {
+      print('📄 بدء توليد تقرير PDF للطلب: $orderId');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/reports/$orderId/pdf'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        print('✅ تم توليد تقرير PDF بنجاح');
+        return response.bodyBytes;
+      } else {
+        throw Exception('فشل في توليد تقرير PDF: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ خطأ في توليد تقرير PDF: $e');
+      throw Exception('فشل في توليد تقرير PDF: $e');
+    }
+  }
+
+
+  // إرسال تقرير PDF بالبريد الإلكتروني
+  Future<EmailReportResult> sendOrderPdfReportByEmail(String orderId, String recipientEmail) async {
+    try {
+      print('📧 بدء إرسال تقرير PDF بالبريد الإلكتروني...');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/reports/$orderId/send-pdf-email'),
+        headers: _headers,
+        body: json.encode({
+          'email': recipientEmail,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        print('✅ تم إرسال تقرير PDF بالبريد الإلكتروني بنجاح');
+
+        return EmailReportResult(
+          success: true,
+          message: responseData['message'] ?? 'تم إرسال التقرير بنجاح',
+          email: recipientEmail,
+          orderId: orderId,
+          reportType: 'PDF',
+          timestamp: DateTime.now(),
+        );
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'فشل في إرسال البريد الإلكتروني');
+      }
+    } catch (e) {
+      print('❌ خطأ في إرسال تقرير PDF بالبريد: $e');
+      return EmailReportResult(
+        success: false,
+        message: 'فشل في إرسال البريد الإلكتروني',
+        email: recipientEmail,
+        orderId: orderId,
+        reportType: 'PDF',
+        timestamp: DateTime.now(),
+        error: e.toString(),
+      );
+    }
+  }
+
 }
 
 

@@ -4,7 +4,7 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import '../models/order.dart';
 
-class EmailService {
+class EmailServiceEmailService {
   // Email configuration - في التطبيق الحقيقي، هذه البيانات تأتي من متغيرات البيئة
   static const String _smtpHost = 'smtp.gmail.com';
   static const int _smtpPort = 587;
