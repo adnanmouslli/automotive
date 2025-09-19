@@ -1,4 +1,5 @@
 import 'package:automotive/config/app_config.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
@@ -924,17 +925,18 @@ class NewOrderService {
   String getServiceTypeText(ServiceType serviceType) {
     switch (serviceType) {
       case ServiceType.TRANSPORT:
-        return 'نقل';
+        return 'transport'.tr;
       case ServiceType.WASH:
-        return 'غسيل';
+        return 'wash'.tr;
       case ServiceType.REGISTRATION:
-        return 'تسجيل';
+        return 'registration'.tr;
       case ServiceType.INSPECTION:
-        return 'فحص';
+        return 'inspection'.tr;
       case ServiceType.MAINTENANCE:
-        return 'صيانة';
+        return 'maintenance'.tr;
     }
   }
+
 
   // Get image category text in Arabic
   String getImageCategoryText(ImageCategory category) {

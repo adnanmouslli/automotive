@@ -120,6 +120,8 @@ class _ExpensesPageState extends State<ExpensesPage>
     return Scaffold(
       backgroundColor: AppColors.lightGray,
       appBar: _buildAppBar(),
+      // استخدام resizeToAvoidBottomInset: true للسماح بتحريك المحتوى
+      resizeToAvoidBottomInset: true,
       body: Form(
         key: _formKey,
         child: Column(
@@ -128,7 +130,13 @@ class _ExpensesPageState extends State<ExpensesPage>
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 20,
+                  // إضافة padding سفلي ديناميكي حسب ارتفاع الكيبورد
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 100,
+                ),
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
@@ -148,7 +156,6 @@ class _ExpensesPageState extends State<ExpensesPage>
                           height: _showSummary ? null : 0,
                           child: _showSummary ? _buildSummaryCard() : null,
                         ),
-                        const SizedBox(height: 100), // Extra space for bottom actions
                       ],
                     ),
                   ),
@@ -158,7 +165,13 @@ class _ExpensesPageState extends State<ExpensesPage>
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomActions(),
+      // استخدام Padding مع MediaQuery لتجنب الكيبورد
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: _buildBottomActions(),
+      ),
     );
   }
 
@@ -396,6 +409,18 @@ class _ExpensesPageState extends State<ExpensesPage>
               fontWeight: FontWeight.w600,
               color: AppColors.darkGray,
             ),
+            // إضافة textInputAction للتنقل بين الحقول
+            textInputAction: controller == _notesController
+                ? TextInputAction.done
+                : TextInputAction.next,
+            onFieldSubmitted: (_) {
+              // الانتقال للحقل التالي أو إغلاق الكيبورد
+              if (controller == _notesController) {
+                FocusScope.of(context).unfocus();
+              } else {
+                FocusScope.of(context).nextFocus();
+              }
+            },
             decoration: InputDecoration(
               prefixIcon: Container(
                 margin: const EdgeInsets.all(8),
@@ -485,6 +510,11 @@ class _ExpensesPageState extends State<ExpensesPage>
                 controller: _notesController,
                 maxLines: 4,
                 style: TextStyle(fontSize: 16, color: AppColors.darkGray),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) {
+                  // إغلاق الكيبورد عند الانتهاء من الملاحظات
+                  FocusScope.of(context).unfocus();
+                },
                 decoration: InputDecoration(
                   hintText: 'add_expense_notes_hint'.tr,
                   hintStyle: TextStyle(color: AppColors.secondaryText),
@@ -642,52 +672,58 @@ class _ExpensesPageState extends State<ExpensesPage>
         ],
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _isLoading ? null : () => Get.back(),
-                icon: const Icon(Icons.close),
-                label: Text('cancel'.tr),
-                style: AppColors.secondaryButtonStyle.copyWith(
-                  padding: MaterialStateProperty.all(
-                    const EdgeInsets.symmetric(vertical: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoading ? null : () => Get.back(),
+                    icon: const Icon(Icons.close),
+                    label: Text('cancel'.tr),
+                    style: AppColors.secondaryButtonStyle.copyWith(
+                      padding: MaterialStateProperty.all(
+                        const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading || _totalAmount <= 0 ? null : _submitExpenses,
-                icon: _isLoading
-                    ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
-                  ),
-                )
-                    : Icon(_isEditMode ? Icons.update : Icons.save),
-                label: Text(_isLoading
-                    ? 'saving'.tr
-                    : _isEditMode ? 'update_expenses_btn'.tr : 'save_expenses_btn'.tr),
-                style: AppColors.primaryButtonStyle.copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                        (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.disabled)) {
-                        return AppColors.mediumGray;
-                      }
-                      return AppColors.primaryBlue;
-                    },
-                  ),
-                  padding: MaterialStateProperty.all(
-                    const EdgeInsets.symmetric(vertical: 16),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading || _totalAmount <= 0 ? null : _submitExpenses,
+                    icon: _isLoading
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
+                      ),
+                    )
+                        : Icon(_isEditMode ? Icons.update : Icons.save),
+                    label: Text(_isLoading
+                        ? 'saving'.tr
+                        : _isEditMode ? 'update_expenses_btn'.tr : 'save_expenses_btn'.tr),
+                    style: AppColors.primaryButtonStyle.copyWith(
+                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                            (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.disabled)) {
+                            return AppColors.mediumGray;
+                          }
+                          return AppColors.primaryBlue;
+                        },
+                      ),
+                      padding: MaterialStateProperty.all(
+                        const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
