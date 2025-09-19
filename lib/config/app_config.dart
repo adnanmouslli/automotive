@@ -1,10 +1,10 @@
 class AppConfig {
   static const String appName = 'Car Handover System';
   static const String appVersion = '1.0.0';
-  static const String buildNumber = '1';
+  static const String buildNumber = '2';
 
   // Environment configurations
-  static const bool isProduction = false;
+  static const bool isProduction = true;
   static const bool isPhone = false;
 
   static const bool enableLogging = true;
