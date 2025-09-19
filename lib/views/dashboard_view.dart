@@ -750,7 +750,7 @@ class DashboardView extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: ElevatedButton(
-                  onPressed: () => _generateHtmlReport(order),
+                  onPressed: () => _generatePdfReport(order),
                   style: AppColors.successButtonStyle.copyWith(
                     padding: MaterialStateProperty.all(
                       const EdgeInsets.symmetric(vertical: 10),
@@ -761,7 +761,7 @@ class DashboardView extends StatelessWidget {
                     children: [
                       const Icon(Icons.description, size: 14, color: AppColors.whiteText),
                       const SizedBox(width: 6),
-                      Text('html_report'.tr, style: AppColors.captionStyle.copyWith(
+                      Text('pdf_report'.tr, style: AppColors.captionStyle.copyWith(
                         color: AppColors.whiteText,
                         fontWeight: FontWeight.w600,
                       )),
@@ -846,18 +846,9 @@ class DashboardView extends StatelessWidget {
     }
   }
 
-  // دالة محسنة لإنتاج التقرير
-  Future<void> _generateReport(NewOrder order) async {
-    // توجيه إلى الدالة الجديدة
-    await _generateHtmlReport(order);
-  }
 
-  Future<void> _retryGenerateReport(NewOrder order) async {
-    await _generateReport(order);
-  }
-
-  // توليد تقرير HTML
-  Future<void> _generateHtmlReport(NewOrder order) async {
+// دالة توليد تقرير PDF محسنة ومُصححة
+  Future<void> _generatePdfReport(NewOrder order) async {
     try {
       // عرض مؤشر تحميل مع تفاصيل أكثر
       Get.dialog(
@@ -874,18 +865,18 @@ class DashboardView extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.lightGreenBg,
+                    color: AppColors.lightRedBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
-                    Icons.description,
-                    color: AppColors.successGreen,
+                    Icons.picture_as_pdf,
+                    color: AppColors.errorRed,
                     size: 40,
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'generating_html_report'.tr,
+                  'generating_pdf_report'.tr,
                   style: AppColors.bodyStyle.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -894,7 +885,7 @@ class DashboardView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'creating_interactive_report'.tr,
+                  'creating_professional_pdf'.tr,
                   style: AppColors.captionStyle,
                   textAlign: TextAlign.center,
                 ),
@@ -903,7 +894,7 @@ class DashboardView extends StatelessWidget {
                   width: 200,
                   child: LinearProgressIndicator(
                     backgroundColor: AppColors.borderGray,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.successGreen),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.errorRed),
                   ),
                 ),
               ],
@@ -913,17 +904,20 @@ class DashboardView extends StatelessWidget {
         barrierDismissible: false,
       );
 
-      // إنشاء التقرير HTML
-      final htmlContent = await NewOrderService().generateOrderHtmlReport(order.id!);
+      // إنشاء تقرير PDF باستخدام NewOrderController
+      final controller = Get.find<NewOrderController>();
+      await controller.generatePdfReport(order.id);
 
       // إغلاق مؤشر التحميل
-      Get.back();
-
-      // حفظ وعرض الملف HTML
-      await _saveAndOpenHtmlReport(htmlContent, order);
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
 
     } catch (e) {
-      Get.back(); // إغلاق مؤشر التحميل في حالة الخطأ
+      // إغلاق مؤشر التحميل في حالة الخطأ
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
 
       // عرض رسالة خطأ محسنة
       Get.dialog(
@@ -933,7 +927,7 @@ class DashboardView extends StatelessWidget {
             children: [
               const Icon(Icons.error_outline, color: AppColors.errorRed, size: 24),
               const SizedBox(width: 8),
-              Text('html_report_failed'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+              Text('pdf_report_failed'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
             ],
           ),
           content: Column(
@@ -941,7 +935,7 @@ class DashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'html_report_error_message'.tr,
+                'pdf_report_error_message'.tr,
                 style: AppColors.bodyStyle.copyWith(height: 1.4),
               ),
               const SizedBox(height: 16),
@@ -982,9 +976,9 @@ class DashboardView extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Get.back();
-                _generateHtmlReport(order);
+                _generatePdfReport(order);
               },
-              style: AppColors.successButtonStyle,
+              style: AppColors.dangerButtonStyle,
               child: Text('retry'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
             ),
           ],
@@ -993,18 +987,17 @@ class DashboardView extends StatelessWidget {
     }
   }
 
-// دالة محسنة لحفظ وفتح تقرير HTML
-  Future<void> _saveAndOpenHtmlReport(String htmlContent, NewOrder order) async {
+  Future<void> _saveAndDisplayPdfReport(Uint8List pdfBytes, String orderId) async {
     try {
       // الحصول على مسار التخزين المؤقت
       final directory = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'Fahrzeuguebergabe_${order.orderNumber ?? order.id}_$timestamp.html';
+      final fileName = 'Fahrzeuguebergabe_$orderId\_$timestamp.pdf';
       final filePath = '${directory.path}/$fileName';
 
       // حفظ الملف
       final file = File(filePath);
-      await file.writeAsString(htmlContent, encoding: utf8);
+      await file.writeAsBytes(pdfBytes);
 
       // فتح الملف
       final result = await OpenFilex.open(filePath);
@@ -1012,19 +1005,19 @@ class DashboardView extends StatelessWidget {
       if (result.type == ResultType.done) {
         // عرض رسالة نجاح محسنة
         Get.snackbar(
-          '📄 ${'html_report_generated'.tr}',
-          'html_report_saved_successfully'.tr,
-          backgroundColor: AppColors.successGreen,
+          '📄 ${'pdf_report_generated'.tr}',
+          'pdf_report_saved_successfully'.tr,
+          backgroundColor: AppColors.errorRed,
           colorText: AppColors.whiteText,
           snackPosition: SnackPosition.TOP,
           duration: const Duration(seconds: 5),
           margin: const EdgeInsets.all(16),
           borderRadius: 12,
-          icon: const Icon(Icons.description, color: AppColors.whiteText),
+          icon: const Icon(Icons.picture_as_pdf, color: AppColors.whiteText),
           mainButton: TextButton(
             onPressed: () {
               Get.closeCurrentSnackbar();
-              _showReportOptionsDialog(filePath, order);
+              _showPdfOptionsDialog(filePath, orderId);
             },
             child: Text('options'.tr, style: AppColors.buttonTextStyle.copyWith(
               color: AppColors.whiteText,
@@ -1033,31 +1026,45 @@ class DashboardView extends StatelessWidget {
           ),
         );
       } else {
-        throw Exception('failed_to_open_html_file'.tr);
+        throw Exception('failed_to_open_pdf_file'.tr);
       }
 
     } catch (e) {
-      throw Exception('failed_to_save_html_file'.tr.replaceAll('error', e.toString()));
+      throw Exception('failed_to_save_pdf_file'.tr.replaceAll('{error}', e.toString()));
     }
   }
 
-// عرض خيارات التقرير
-  Future<void> _showReportOptionsDialog(String filePath, NewOrder order) async {
+// عرض خيارات تقرير PDF
+  Future<void> _showPdfOptionsDialog(String filePath, String orderId) async {
+    // البحث عن الطلب بالـ ID
+    final controller = Get.find<NewOrderController>();
+    final order = controller.getOrderById(orderId);
+
+    if (order == null) {
+      Get.snackbar(
+        'error'.tr,
+        'order_not_found'.tr,
+        backgroundColor: AppColors.errorRed,
+        colorText: AppColors.whiteText,
+      );
+      return;
+    }
+
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.description, color: AppColors.successGreen, size: 24),
+            const Icon(Icons.picture_as_pdf, color: AppColors.errorRed, size: 24),
             const SizedBox(width: 8),
-            Text('report_options'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
+            Text('pdf_options'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'report_generated_successfully_options'.tr,
+              'pdf_generated_successfully_options'.tr,
               style: AppColors.bodyStyle.copyWith(height: 1.4),
               textAlign: TextAlign.center,
             ),
@@ -1073,11 +1080,11 @@ class DashboardView extends StatelessWidget {
                 ),
                 child: const Icon(Icons.share, color: AppColors.progressBlue, size: 20),
               ),
-              title: Text('share_report'.tr, style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500)),
+              title: Text('share_pdf'.tr, style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500)),
               subtitle: Text('share_with_other_apps'.tr, style: AppColors.captionStyle),
               onTap: () {
                 Get.back();
-                _shareHtmlReport(filePath);
+                _sharePdfReport(filePath);
               },
             ),
 
@@ -1094,10 +1101,10 @@ class DashboardView extends StatelessWidget {
                 child: const Icon(Icons.email, color: AppColors.successGreen, size: 20),
               ),
               title: Text('send_by_email'.tr, style: AppColors.bodyStyle.copyWith(fontWeight: FontWeight.w500)),
-              subtitle: Text('send_to_client_email'.tr, style: AppColors.captionStyle),
+              subtitle: Text('send_pdf_to_client'.tr, style: AppColors.captionStyle),
               onTap: () {
                 Get.back();
-                _sendEmailReportFromDialog(order);
+                _sendPdfEmailFromDialog(order);
               },
             ),
 
@@ -1132,12 +1139,14 @@ class DashboardView extends StatelessWidget {
     );
   }
 
-  Future<void> _sendEmailReportFromDialog(NewOrder order) async {
-    await _sendEmailReport(order, Get.find<NewOrderController>());
+// إرسال تقرير PDF بالبريد الإلكتروني من الـ dialog
+  Future<void> _sendPdfEmailFromDialog(NewOrder order) async {
+    final controller = Get.find<NewOrderController>();
+    await controller.sendEmailReport(order);
   }
 
-// مشاركة تقرير HTML
-  Future<void> _shareHtmlReport(String filePath) async {
+// مشاركة تقرير PDF
+  Future<void> _sharePdfReport(String filePath) async {
     try {
       // يمكنك استخدام مكتبة share_plus لمشاركة الملف
       // await Share.shareXFiles([XFile(filePath)], text: 'Fahrzeugübergabe Bericht');
@@ -1146,7 +1155,7 @@ class DashboardView extends StatelessWidget {
       await Clipboard.setData(ClipboardData(text: filePath));
       Get.snackbar(
         '📋 ${'file_path_copied'.tr}',
-        'file_path_copied_successfully'.tr,
+        'pdf_path_copied_successfully'.tr,
         backgroundColor: AppColors.progressBlue,
         colorText: AppColors.whiteText,
         snackPosition: SnackPosition.BOTTOM,
@@ -1157,7 +1166,7 @@ class DashboardView extends StatelessWidget {
       print('❌ خطأ في مشاركة الملف: $e');
       Get.snackbar(
         'share_error'.tr,
-        'failed_to_share_file'.tr,
+        'failed_to_share_pdf'.tr,
         backgroundColor: AppColors.errorRed,
         colorText: AppColors.whiteText,
         snackPosition: SnackPosition.BOTTOM,
@@ -1303,372 +1312,7 @@ class DashboardView extends StatelessWidget {
     }
   }
 
-// دالة مساعدة لحفظ وفتح ملف PDF
-  Future<void> _saveAndOpenPdf(Uint8List pdfBytes, NewOrder order) async {
-    try {
-      // الحصول على مسار التخزين المؤقت
-      final directory = await getTemporaryDirectory();
-      final filePath = '${directory.path}/Handover_Report_${order.orderNumber}.pdf';
 
-      // حفظ الملف
-      final file = File(filePath);
-      await file.writeAsBytes(pdfBytes);
-
-      // فتح الملف
-      OpenFilex.open(filePath);
-
-      // عرض رسالة نجاح
-      Get.snackbar(
-        'تم إنشاء التقرير',
-        'تم حفظ التقرير بنجاح وجاهز للمشاركة',
-        backgroundColor: AppColors.successGreen,
-        colorText: AppColors.whiteText,
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 3),
-        icon: const Icon(Icons.check_circle, color: AppColors.whiteText),
-      );
-
-    } catch (e) {
-      throw Exception('فشل في حفظ أو فتح الملف: $e');
-    }
-  }
-
-  Widget _buildQuickActions(NewOrder order, NewOrderController controller) {
-    final actions = <Widget>[];
-
-    // دائماً عرض زر العرض
-    actions.add(
-      Expanded(
-        child: OutlinedButton(
-          onPressed: () => _viewOrder(order),
-          style: AppColors.secondaryButtonStyle.copyWith(
-            padding: MaterialStateProperty.all(
-              const EdgeInsets.symmetric(vertical: 8),
-            ),
-          ),
-          child: Text('عرض', style: AppColors.captionStyle),
-        ),
-      ),
-    );
-
-    // الأزرار حسب حالة الطلب
-    final status = order.status.toLowerCase();
-
-    if (status == 'pending') {
-      // زر بدء التنفيذ
-      actions.add(const SizedBox(width: 8));
-      actions.add(
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () => _startOrder(order, controller),
-            style: AppColors.primaryButtonStyle.copyWith(
-              padding: MaterialStateProperty.all(
-                const EdgeInsets.symmetric(vertical: 8),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.play_arrow, size: 14, color: AppColors.whiteText),
-                const SizedBox(width: 4),
-                Text('بدء', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
-              ],
-            ),
-          ),
-        ),
-      );
-    } else if (status == 'in_progress') {
-      // فحص المتطلبات وعرض الزر المناسب
-      if (!order.hasImages) {
-        actions.add(const SizedBox(width: 8));
-        actions.add(
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _addImages(order),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.pendingOrange,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.camera_alt, size: 14, color: AppColors.whiteText),
-                  const SizedBox(width: 4),
-                  Text('صور', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
-                ],
-              ),
-            ),
-          ),
-        );
-      } else if (!order.hasAllSignatures) {
-        actions.add(const SizedBox(width: 8));
-        actions.add(
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _addSignatures(order),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.progressBlue,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.edit, size: 14, color: AppColors.whiteText),
-                  const SizedBox(width: 4),
-                  Text('توقيع', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
-                ],
-              ),
-            ),
-          ),
-        );
-      } else {
-        // جميع المتطلبات مكتملة - زر الإتمام
-        actions.add(const SizedBox(width: 8));
-        actions.add(
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _completeOrder(order, controller),
-              style: AppColors.successButtonStyle.copyWith(
-                padding: MaterialStateProperty.all(
-                  const EdgeInsets.symmetric(vertical: 8),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.check_circle, size: 14, color: AppColors.whiteText),
-                  const SizedBox(width: 4),
-                  Text('إتمام', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    } else if (status == 'completed') {
-      // زر عرض التقرير أو المشاركة
-      actions.add(const SizedBox(width: 8));
-      actions.add(
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () => _viewCompletedOrder(order),
-            style: AppColors.successButtonStyle.copyWith(
-              padding: MaterialStateProperty.all(
-                const EdgeInsets.symmetric(vertical: 8),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.receipt, size: 14, color: AppColors.whiteText),
-                const SizedBox(width: 4),
-                Text('تقرير', style: AppColors.captionStyle.copyWith(color: AppColors.whiteText)),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(children: actions);
-  }
-
-  // عرض dialog لإدخال البريد الإلكتروني
-  Future<void> _showEmailInputDialog(NewOrder order) async {
-    final TextEditingController emailController = TextEditingController();
-    final RxString emailError = ''.obs;
-
-    await Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.email_outlined, color: AppColors.progressBlue, size: 22),
-            const SizedBox(width: 8),
-            Text('enter_email_address'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'enter_email_to_send_report'.tr,
-              style: AppColors.bodyStyle.copyWith(height: 1.4),
-            ),
-            const SizedBox(height: 16),
-            Obx(() => TextField(
-              controller: emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'email_address'.tr,
-                hintText: 'example@company.com',
-                prefixIcon: const Icon(Icons.email_outlined, color: AppColors.mediumGray),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.borderGray),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.primaryBlue),
-                ),
-                errorText: emailError.value.isEmpty ? null : emailError.value,
-              ),
-              onChanged: (value) {
-                emailError.value = '';
-              },
-            )),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
-          ),
-          Obx(() => ElevatedButton(
-            onPressed: emailController.text.trim().isEmpty ? null : () {
-              final email = emailController.text.trim();
-              if (_isValidEmail(email)) {
-                Get.back();
-                _showEmailConfirmationDialog(order, email);
-              } else {
-                emailError.value = 'invalid_email_format'.tr;
-              }
-            },
-            style: AppColors.primaryButtonStyle,
-            child: Text('continue'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
-          )),
-        ],
-      ),
-    );
-  }
-
-  // عرض dialog تأكيد إرسال البريد الإلكتروني
-  Future<void> _showEmailConfirmationDialog(NewOrder order, String email) async {
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            const Icon(Icons.send, color: AppColors.progressBlue, size: 22),
-            const SizedBox(width: 8),
-            Text('confirm_send_email'.tr, style: AppColors.bodyStyle.copyWith(fontSize: 16)),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'confirm_send_report_email'.tr,
-              style: AppColors.bodyStyle.copyWith(
-                height: 1.4,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.lightBlueBg,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.progressBlue.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.assignment, color: AppColors.progressBlue, size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        'order_details'.tr,
-                        style: AppColors.captionStyle.copyWith(
-                          color: AppColors.progressBlue,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${'client'.tr}: ${order.client}',
-                    style: AppColors.captionStyle.copyWith(color: AppColors.progressBlue),
-                  ),
-                  Text(
-                    '${'order_number'.tr}: ${order.orderNumber ?? order.id}',
-                    style: AppColors.captionStyle.copyWith(color: AppColors.progressBlue),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.email, color: AppColors.progressBlue, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          email,
-                          style: AppColors.captionStyle.copyWith(
-                            color: AppColors.progressBlue,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.lightGreenBg,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: AppColors.successGreen, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'email_report_info'.tr,
-                      style: AppColors.captionStyle.copyWith(
-                        color: AppColors.successGreen,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: Text('cancel'.tr, style: AppColors.bodyStyle.copyWith(color: AppColors.mediumGray)),
-          ),
-          ElevatedButton(
-            onPressed: () => Get.back(result: true),
-            style: AppColors.primaryButtonStyle,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.send, size: 16, color: AppColors.whiteText),
-                const SizedBox(width: 6),
-                Text('send_email'.tr, style: AppColors.buttonTextStyle.copyWith(color: AppColors.whiteText)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await _performEmailSend(order, email);
-    }
-  }
 
   // تنفيذ إرسال البريد الإلكتروني
   Future<void> _performEmailSend(NewOrder order, String email) async {
@@ -2034,12 +1678,6 @@ class DashboardView extends StatelessWidget {
     );
   }
 
-  // دالة مساعدة للتحقق من صحة البريد الإلكتروني
-  bool _isValidEmail(String email) {
-    // final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+);
-    //     return emailRegex.test(email.trim());
-    return true;
-  }
 
   // دالة مساعدة لتنسيق التاريخ والوقت
   String _formatDateTime(DateTime dateTime) {

@@ -1558,55 +1558,56 @@ class SimpleOrderCreateController extends GetxController {
   String _getItemName(VehicleItem item) {
     switch (item) {
       case VehicleItem.PARTITION_NET:
-        return 'شبكة التقسيم';
+        return 'PARTITION_NET'.tr;
       case VehicleItem.WINTER_TIRES:
-        return 'إطارات شتوية';
+        return 'WINTER_TIRES'.tr;
       case VehicleItem.HUBCAPS:
-        return 'أغطية العجل';
+        return 'HUBCAPS'.tr;
       case VehicleItem.REAR_PARCEL_SHELF:
-        return 'رف الطرود الخلفي';
+        return 'REAR_PARCEL_SHELF'.tr;
       case VehicleItem.NAVIGATION_SYSTEM:
-        return 'نظام الملاحة';
+        return 'NAVIGATION_SYSTEM'.tr;
       case VehicleItem.TRUNK_ROLL_COVER:
-        return 'غطاء صندوق السيارة';
+        return 'TRUNK_ROLL_COVER'.tr;
       case VehicleItem.SAFETY_VEST:
-        return 'سترة الأمان';
+        return 'SAFETY_VEST'.tr;
       case VehicleItem.VEHICLE_KEYS:
-        return 'مفاتيح السيارة';
+        return 'VEHICLE_KEYS'.tr;
       case VehicleItem.WARNING_TRIANGLE:
-        return 'مثلث التحذير';
+        return 'WARNING_TRIANGLE'.tr;
       case VehicleItem.RADIO:
-        return 'راديو';
+        return 'RADIO'.tr;
       case VehicleItem.ALLOY_WHEELS:
-        return 'عجلات سبيكة';
+        return 'ALLOY_WHEELS'.tr;
       case VehicleItem.SUMMER_TIRES:
-        return 'إطارات صيفية';
+        return 'SUMMER_TIRES'.tr;
       case VehicleItem.OPERATING_MANUAL:
-        return 'دليل التشغيل';
+        return 'OPERATING_MANUAL'.tr;
       case VehicleItem.REGISTRATION_DOCUMENT:
-        return 'وثيقة التسجيل';
+        return 'REGISTRATION_DOCUMENT'.tr;
       case VehicleItem.COMPRESSOR_REPAIR_KIT:
-        return 'طقم الضاغط/الإصلاح';
+        return 'COMPRESSOR_REPAIR_KIT'.tr;
       case VehicleItem.TOOLS_JACK:
-        return 'الأدوات/الجاك';
+        return 'TOOLS_JACK'.tr;
       case VehicleItem.SECOND_SET_OF_TIRES:
-        return 'مجموعة ثانية من الإطارات';
+        return 'SECOND_SET_OF_TIRES'.tr;
       case VehicleItem.EMERGENCY_WHEEL:
-        return 'عجلة الطوارئ';
+        return 'EMERGENCY_WHEEL'.tr;
       case VehicleItem.ANTENNA:
-        return 'الهوائي';
+        return 'ANTENNA'.tr;
       case VehicleItem.FUEL_CARD:
-        return 'بطاقة الوقود';
+        return 'FUEL_CARD'.tr;
       case VehicleItem.FIRST_AID_KIT:
-        return 'طقم الإسعافات الأولية';
+        return 'FIRST_AID_KIT'.tr;
       case VehicleItem.SPARE_TIRE:
-        return 'الإطار الاحتياطي';
+        return 'SPARE_TIRE'.tr;
       case VehicleItem.SERVICE_BOOK:
-        return 'كتاب الخدمة';
+        return 'SERVICE_BOOK'.tr;
       default:
-        return item.toString().split('.').last.replaceAll('_', ' ');
+        return item.toString().split('.').last.replaceAll('_', ' ').tr;
     }
   }
+
 
   // دالة للتحقق من الأغراض المحددة
   bool isItemSelected(VehicleItem item) {

@@ -1,16 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import '../models/new_address.dart';
 import '../models/new_order.dart';
 import '../routes/app_pages.dart';
 import '../services/order_service.dart';
-import '../views/EditOrderView.dart';
 import 'auth_controller.dart';
 import 'order_view_details.dart';
 
@@ -38,7 +37,7 @@ class NewOrderController extends GetxController {
   List<NewOrder> get filteredOrders {
     try {
       final currentUserId = _authController.currentUserId;
-      if (currentUserId == null || currentUserId.isEmpty) {
+      if (currentUserId.isEmpty) {
         return [];
       }
 
@@ -71,25 +70,21 @@ class NewOrderController extends GetxController {
   // Statistics
   int get totalOrders {
     final currentUserId = _authController.currentUserId;
-    if (currentUserId == null) return 0;
     return _orders.where((o) => o.driverId == currentUserId).length;
   }
 
   int get pendingOrders {
     final currentUserId = _authController.currentUserId;
-    if (currentUserId == null) return 0;
     return _orders.where((o) => o.driverId == currentUserId && o.status == 'pending').length;
   }
 
   int get inProgressOrders {
     final currentUserId = _authController.currentUserId;
-    if (currentUserId == null) return 0;
     return _orders.where((o) => o.driverId == currentUserId && o.status == 'in_progress').length;
   }
 
   int get completedOrders {
     final currentUserId = _authController.currentUserId;
-    if (currentUserId == null) return 0;
     return _orders.where((o) => o.driverId == currentUserId && o.status == 'completed').length;
   }
 
@@ -503,11 +498,11 @@ class NewOrderController extends GetxController {
       if (orderData['deliveryAddress'] != null) {
         final deliveryData = orderData['deliveryAddress'] as Map<String, dynamic>;
         updateData['deliveryAddress'] = {
-          'street': deliveryData['street']?.toString()?.trim() ?? '',
-          'houseNumber': deliveryData['houseNumber']?.toString()?.trim() ?? '',
-          'zipCode': deliveryData['zipCode']?.toString()?.trim() ?? '',
-          'city': deliveryData['city']?.toString()?.trim() ?? '',
-          'country': deliveryData['country']?.toString()?.trim() ?? currentOrder.deliveryAddress.country,
+          'street': deliveryData['street']?.toString().trim() ?? '',
+          'houseNumber': deliveryData['houseNumber']?.toString().trim() ?? '',
+          'zipCode': deliveryData['zipCode']?.toString().trim() ?? '',
+          'city': deliveryData['city']?.toString().trim() ?? '',
+          'country': deliveryData['country']?.toString().trim() ?? currentOrder.deliveryAddress.country,
 
           // الحقول الجديدة للعنوان
           'date': deliveryData['date']?.toString(),
@@ -1562,27 +1557,6 @@ class NewOrderController extends GetxController {
     _showSnackbar(title, message, Colors.red);
   }
 
-  Future<void> sendEmailReport(NewOrder order) async {
-    await _sendEmailReportWithDialog(order);
-  }
-  // دالة محسنة لإرسال التقرير عبر البريد الإلكتروني مع Dialogs
-  Future<void> _sendEmailReportWithDialog(NewOrder order) async {
-    try {
-      // التحقق من وجود بريد إلكتروني للعميل
-      if (order.clientEmail.isEmpty) {
-        final email = await _requestEmailInput(order);
-        if (email == null || email.isEmpty) return; // المستخدم ألغى العملية
-
-        await _performEmailSendWithConfirmation(order, email);
-      } else {
-        await _performEmailSendWithConfirmation(order, order.clientEmail);
-      }
-    } catch (e) {
-      print('❌ خطأ في إرسال التقرير بالبريد: $e');
-      _showErrorSnackbar('email_send_error'.tr, e.toString());
-    }
-  }
-
 
   // طلب إدخال البريد الإلكتروني من المستخدم
   Future<String?> _requestEmailInput(NewOrder order) async {
@@ -1647,79 +1621,6 @@ class NewOrderController extends GetxController {
     );
   }
 
-  // تنفيذ الإرسال مع تأكيد المستخدم
-  Future<void> _performEmailSendWithConfirmation(NewOrder order, String email) async {
-    // عرض dialog تأكيد
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.send, color: Colors.blue.shade600, size: 22),
-            SizedBox(width: 8),
-            Text('confirm_send_report'.tr),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'confirm_send_html_report'.tr,
-              style: TextStyle(fontSize: 14, height: 1.4),
-            ),
-            SizedBox(height: 16),
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow(Icons.person, 'client'.tr, order.client),
-                  SizedBox(height: 6),
-                  _buildInfoRow(Icons.confirmation_number, 'order_number'.tr,
-                      order.orderNumber ?? order.id),
-                  SizedBox(height: 6),
-                  _buildInfoRow(Icons.email, 'email_address'.tr, email),
-                  SizedBox(height: 6),
-                  _buildInfoRow(Icons.description, 'report_type'.tr, 'HTML Report'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: Text('cancel'.tr),
-          ),
-          ElevatedButton(
-            onPressed: () => Get.back(result: true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade600,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.send, size: 16, color: Colors.white),
-                SizedBox(width: 6),
-                Text('send_report'.tr, style: TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await _executeEmailSend(order, email);
-    }
-  }
 
   // تنفيذ الإرسال الفعلي
   Future<void> _executeEmailSend(NewOrder order, String email) async {
@@ -1800,7 +1701,7 @@ class NewOrderController extends GetxController {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'report_sent_successfully_message'.tr,
+              'report_send_successfully_message'.tr,
               style: TextStyle(fontSize: 14, height: 1.4),
             ),
             SizedBox(height: 16),
@@ -1847,13 +1748,7 @@ class NewOrderController extends GetxController {
       ),
     );
 
-    // عرض snackbar إضافي
-    Future.delayed(Duration(milliseconds: 500), () {
-      _showSuccessSnackbar(
-        '📧 ${'email_sent'.tr}',
-        'html_report_sent_to'.tr.replaceAll('email', result.email),
-      );
-    });
+
   }
 
   // عرض dialog فشل الإرسال
@@ -2124,14 +2019,236 @@ class NewOrderController extends GetxController {
     }
   }
 
-  // توليد تقرير HTML محسن
-  Future<void> generateHtmlReport(String orderId) async {
+  // توليد تقرير PDF محسن
+  Future<void> generatePdfReport(String orderId) async {
     try {
       _isCreating.value = true;
 
-      // عرض مؤشر تحميل
-      Get.dialog(
-        Center(
+
+      // توليد التقرير
+      final pdfBytes = await _orderService.generateOrderPdfReport(orderId);
+
+      // إغلاق مؤشر التحميل
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      // حفظ وعرض التقرير
+      await _saveAndDisplayPdfReport(pdfBytes, orderId);
+
+    } catch (e) {
+      // إغلاق مؤشر التحميل في حالة الخطأ
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+
+      _showErrorSnackbar('pdf_report_generation_failed'.tr, e.toString());
+      print('❌ خطأ في توليد PDF: $e');
+    } finally {
+      _isCreating.value = false;
+    }
+  }
+
+  // حفظ وعرض تقرير PDF
+  Future<void> _saveAndDisplayPdfReport(Uint8List pdfBytes, String orderId) async {
+    try {
+      // الحصول على مسار التخزين
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'Fahrzeuguebergabe_$orderId\_$timestamp.pdf';
+      final filePath = '${directory.path}/$fileName';
+
+      // حفظ الملف
+      final file = File(filePath);
+      await file.writeAsBytes(pdfBytes);
+
+      // فتح الملف
+      final result = await OpenFilex.open(filePath);
+
+      if (result.type == ResultType.done) {
+        _showSuccessSnackbar(
+          '📄 ${'pdf_report_generated'.tr}',
+          'pdf_report_ready_to_view'.tr,
+        );
+
+        // إظهار خيارات إضافية بعد تأخير قصير
+        Future.delayed(Duration(milliseconds: 1500), () {
+          _showPdfActionsDialog(filePath, orderId);
+        });
+      } else {
+        throw Exception('failed_to_open_pdf_file'.tr);
+      }
+
+    } catch (e) {
+      throw Exception('failed_to_save_pdf_report'.tr.replaceAll('{error}', e.toString()));
+    }
+  }
+
+// عرض خيارات إضافية للـ PDF
+  void _showPdfActionsDialog(String filePath, String orderId) {
+    final order = getOrderById(orderId);
+    if (order == null) return;
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.picture_as_pdf, color: Colors.red.shade600, size: 22),
+            SizedBox(width: 8),
+            Text('pdf_actions'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'pdf_saved_successfully_choose_action'.tr,
+              style: TextStyle(fontSize: 14, height: 1.4),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+
+            // زر إرسال بالبريد الإلكتروني
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Get.back();
+                  sendEmailReport(order);
+                },
+                icon: Icon(Icons.email, size: 18),
+                label: Text('send_by_email'.tr),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue.shade600,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+
+            SizedBox(height: 8),
+
+
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('close'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+// تعديل دالة إرسال التقرير لاستخدام PDF
+  Future<void> sendEmailReport(NewOrder order) async {
+    await _sendPdfReportWithDialog(order);
+  }
+
+// دالة محسنة لإرسال تقرير PDF عبر البريد الإلكتروني
+  Future<void> _sendPdfReportWithDialog(NewOrder order) async {
+    try {
+      // التحقق من وجود بريد إلكتروني للعميل
+      if (order.clientEmail.isEmpty) {
+        final email = await _requestEmailInput(order);
+        if (email == null || email.isEmpty) return;
+
+        await _performPdfEmailSendWithConfirmation(order, email);
+      } else {
+        await _performPdfEmailSendWithConfirmation(order, order.clientEmail);
+      }
+    } catch (e) {
+      print('❌ خطأ في إرسال تقرير PDF بالبريد: $e');
+      _showErrorSnackbar('email_send_error'.tr, e.toString());
+    }
+  }
+
+// تنفيذ إرسال PDF مع تأكيد المستخدم
+  Future<void> _performPdfEmailSendWithConfirmation(NewOrder order, String email) async {
+    // عرض dialog تأكيد
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.send, color: Colors.blue.shade600, size: 22),
+            SizedBox(width: 8),
+            Text('confirm_send_report'.tr),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'confirm_send_pdf_report'.tr,
+              style: TextStyle(fontSize: 14, height: 1.4),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(Icons.person, 'client'.tr, order.client),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.confirmation_number, 'order_number'.tr,
+                      order.orderNumber ?? order.id),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.email, 'email_address'.tr, email),
+                  SizedBox(height: 6),
+                  _buildInfoRow(Icons.picture_as_pdf, 'report_type'.tr, 'PDF Report'),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text('cancel'.tr),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade600,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.send, size: 16),
+                SizedBox(width: 6),
+                Text('send_pdf_report'.tr),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _executePdfEmailSend(order, email);
+    }
+  }
+
+// تنفيذ إرسال PDF الفعلي
+  Future<void> _executePdfEmailSend(NewOrder order, String email) async {
+    // عرض مؤشر تحميل
+    Get.dialog(
+      WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
           child: Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -2143,63 +2260,47 @@ class NewOrderController extends GetxController {
               children: [
                 CircularProgressIndicator(color: Colors.blue.shade600),
                 SizedBox(height: 16),
-                Text('generating_html_report'.tr, style: TextStyle(fontSize: 14)),
+                Text('sending_pdf_report_email'.tr, style: TextStyle(fontSize: 14)),
+                SizedBox(height: 8),
+                Text(
+                  email,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ),
         ),
-        barrierDismissible: false,
-      );
+      ),
+      barrierDismissible: false,
+    );
 
-      // توليد التقرير
-      final htmlContent = await _orderService.generateOrderHtmlReport(orderId);
+    try {
+      // إرسال تقرير PDF
+      final result = await _orderService.sendOrderPdfReportByEmail(order.id!, email);
 
       // إغلاق مؤشر التحميل
       if (Get.isDialogOpen == true) {
         Get.back();
       }
 
-      // حفظ وعرض التقرير
-      await _saveAndDisplayHtmlReport(htmlContent, orderId);
+      // عرض النتيجة
+      if (result.success) {
+        await _showEmailSuccessDialog(result, order);
+      } else {
+        await _showEmailFailureDialog(result, order, email);
+      }
 
     } catch (e) {
+      // إغلاق مؤشر التحميل في حالة الخطأ
       if (Get.isDialogOpen == true) {
         Get.back();
       }
 
-      _showErrorSnackbar('html_report_generation_failed'.tr, e.toString());
-    } finally {
-      _isCreating.value = false;
-    }
-  }
-
-  // حفظ وعرض تقرير HTML
-  Future<void> _saveAndDisplayHtmlReport(String htmlContent, String orderId) async {
-    try {
-      // الحصول على مسار التخزين
-      final directory = await getTemporaryDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'Fahrzeuguebergabe_$orderId\_$timestamp.html';
-      final filePath = '${directory.path}/$fileName';
-
-      // حفظ الملف
-      final file = File(filePath);
-      await file.writeAsString(htmlContent, encoding: utf8);
-
-      // فتح الملف
-      final result = await OpenFilex.open(filePath);
-
-      if (result.type == ResultType.done) {
-        _showSuccessSnackbar(
-          '📄 ${'html_report_generated'.tr}',
-          'html_report_ready_to_view'.tr,
-        );
-      } else {
-        throw Exception('failed_to_open_html_file'.tr);
-      }
-
-    } catch (e) {
-      throw Exception('failed_to_save_html_report'.tr.replaceAll('error', e.toString()));
+      await _showEmailErrorDialog(e.toString(), order, email);
     }
   }
 
